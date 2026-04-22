@@ -3,351 +3,108 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>AMS Hourly Estimator Scheduler</title>
+<title>AMS Estimator Scheduler</title>
 <style>
-  body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #050505;
-    color: #f3f4f6;
-  }
-  .app {
-    max-width: 1550px;
-    margin: auto;
-    padding: 20px;
-  }
+  body { margin:0; font-family:Arial,sans-serif; background:#050505; color:#f3f4f6; }
+  .app { max-width: 1600px; margin:auto; padding:20px; }
   .hero {
-    background: linear-gradient(135deg, #000 0%, #052e16 45%, #16a34a 100%);
-    border: 1px solid rgba(34, 197, 94, 0.25);
-    border-radius: 18px;
-    padding: 26px;
-    margin-bottom: 18px;
+    background: linear-gradient(135deg,#000 0%,#052e16 45%,#16a34a 100%);
+    border:1px solid rgba(34,197,94,.25); border-radius:18px; padding:26px; margin-bottom:18px;
   }
-  .hero h1 {
-    margin: 0 0 8px;
-    font-size: 34px;
-    color: #fff;
+  .hero h1 { margin:0 0 8px; font-size:34px; color:#fff; }
+  .hero p { margin:0; color:rgba(255,255,255,.92); font-size:15px; }
+  .tabs, .day-tabs, .type-tabs { display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; }
+  .tab-btn, .day-tab-btn, .type-tab-btn {
+    background:#111111; color:#d1d5db; border:1px solid #2a2a2a;
+    padding:12px 16px; border-radius:12px; cursor:pointer; font-weight:700;
   }
-  .hero p {
-    margin: 0;
-    color: rgba(255, 255, 255, 0.92);
-    font-size: 15px;
-  }
-  .tabs {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 18px;
-    flex-wrap: wrap;
-  }
-  .tab-btn, .day-tab-btn {
-    background: #111111;
-    color: #d1d5db;
-    border: 1px solid #2a2a2a;
-    padding: 12px 16px;
-    border-radius: 12px;
-    cursor: pointer;
-    font-weight: 700;
-  }
-  .tab-btn.active, .day-tab-btn.active {
-    background: #16a34a;
-    color: #fff;
-    border-color: #16a34a;
-  }
-  .page { display: none; }
-  .page.active { display: block; }
-  .stats {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 12px;
-    margin-bottom: 18px;
-  }
-  .stat {
-    background: linear-gradient(180deg, #101010 0%, #171717 100%);
-    border: 1px solid #252525;
-    border-radius: 16px;
-    padding: 16px;
-  }
-  .stat .label {
-    color: #9ca3af;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: .04em;
-    font-weight: 700;
-  }
-  .stat .value {
-    font-size: 24px;
-    font-weight: 800;
-    color: #f9fafb;
-    margin-top: 8px;
-  }
-  .grid {
-    display: grid;
-    grid-template-columns: 480px 1fr;
-    gap: 18px;
-    align-items: start;
-  }
-  .stack {
-    display: grid;
-    gap: 18px;
-  }
-  .card {
-    background: linear-gradient(180deg, #111111 0%, #171717 100%);
-    border-radius: 18px;
-    padding: 18px;
-    border: 1px solid #252525;
-    box-shadow: 0 10px 28px rgba(0,0,0,.24);
-  }
-  .card h2, .card h3 {
-    margin-top: 0;
-    color: #f9fafb;
-  }
-  .sub {
-    color: #9ca3af;
-    font-size: 13px;
-    margin-top: -4px;
-    margin-bottom: 14px;
-  }
-  .form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-  .form-grid.one { grid-template-columns: 1fr; }
-  .three {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 12px;
-  }
-  label {
-    display: block;
-    font-size: 12px;
-    color: #d1d5db;
-    font-weight: 700;
-    margin-bottom: 6px;
-  }
-  input, select, button {
-    font: inherit;
-  }
-  input, select {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #2f2f2f;
-    border-radius: 10px;
-    background: #0f0f0f;
-    color: #f3f4f6;
-  }
-  input[type="checkbox"] {
-    width: auto;
-    transform: scale(1.15);
-    margin-right: 8px;
-  }
-  .checkbox-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 8px;
-    color: #d1d5db;
-    font-size: 14px;
-    font-weight: 700;
-  }
-  .btn-row {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 14px;
-  }
-  button {
-    border: none;
-    padding: 10px 14px;
-    border-radius: 10px;
-    cursor: pointer;
-    font-weight: 700;
-  }
-  .btn-primary { background: #16a34a; color: #fff; }
-  .btn-secondary { background: #2a2a2a; color: #f3f4f6; }
-  .btn-danger { background: #dc2626; color: #fff; }
-  .table-wrap {
-    max-height: 620px;
-    overflow: auto;
-    border: 1px solid #262626;
-    border-radius: 12px;
-    background: #0f0f0f;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-  }
-  th, td {
-    border-bottom: 1px solid #262626;
-    padding: 10px 8px;
-    text-align: left;
-    vertical-align: top;
-    color: #f3f4f6;
-  }
-  th {
-    background: #0f0f0f;
-    position: sticky;
-    top: 0;
-    z-index: 1;
-  }
-  .pill {
-    display: inline-block;
-    padding: 4px 8px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 700;
-    background: #052e16;
-    color: #bbf7d0;
-  }
-  .pill.dayoff { background: #2b1300; color: #fed7aa; }
-  .pill.timeoff { background: #3b0a0a; color: #fecaca; }
-  .pill.score { background: #0f2a12; color: #86efac; }
-  .pill.override { background: #1e293b; color: #bfdbfe; }
-  .status-bar {
-    margin-top: 12px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    background: #0d1a11;
-    border: 1px solid #1f3b2a;
-    color: #bbf7d0;
-    font-size: 13px;
-  }
-  .status-bar.error {
-    background: #2a0d0d;
-    border-color: #5b1a1a;
-    color: #fecaca;
-  }
-  .heatmap-wrap {
-    overflow: auto;
-    border: 1px solid #262626;
-    border-radius: 14px;
-    background: #0f0f0f;
-  }
-  .heatmap {
-    min-width: 1060px;
-    border-collapse: collapse;
-  }
-  .heatmap th, .heatmap td {
-    border: 1px solid #262626;
-    text-align: center;
-    padding: 8px;
-    min-width: 74px;
-    height: 44px;
-    font-size: 12px;
-  }
-  .employee-col {
-    min-width: 280px !important;
-    text-align: left !important;
-    position: sticky;
-    left: 0;
-    z-index: 2;
-    background: #101010;
-  }
-  .sticky-top {
-    position: sticky;
-    top: 0;
-    z-index: 3;
-  }
-  .slot-empty { background: #111111; color: #6b7280; }
-  .slot-work { background: #16a34a; color: white; font-weight: 700; }
-  .slot-lunch { background: #facc15; color: #111827; font-weight: 700; }
-  .slot-timeoff { background: #b91c1c; color: white; font-weight: 700; }
-  .coverage-0 { background: #111111; }
-  .coverage-1 { background: #052e16; }
-  .coverage-2 { background: #166534; }
-  .coverage-3 { background: #16a34a; color: white; }
-  .coverage-4 { background: #22c55e; color: white; }
-  .legend {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin: 12px 0 0;
-    font-size: 12px;
-    color: #d1d5db;
-  }
-  .legend span {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .swatch {
-    width: 16px;
-    height: 16px;
-    border-radius: 4px;
-    border: 1px solid rgba(255,255,255,.08);
-    display: inline-block;
-  }
-  .small { font-size: 12px; color: #9ca3af; }
-  .hidden { display: none; }
-  .day-tabs {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 14px;
-  }
-  .available-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 10px;
-    margin-top: 12px;
-  }
-  .available-item {
-    background: #0f0f0f;
-    border: 1px solid #262626;
-    border-radius: 12px;
-    padding: 12px;
-  }
-  .chart-box {
-    background: #0f0f0f;
-    border: 1px solid #262626;
-    border-radius: 14px;
-    padding: 16px;
-  }
-  .chart-controls {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 14px;
-  }
-  .chart-wrap {
-    width: 100%;
-    height: 340px;
-    position: relative;
-  }
-  #performanceChart {
-    width: 100%;
-    height: 100%;
-    display: block;
-    background: #0f0f0f;
-    border-radius: 10px;
-  }
-  @media (max-width: 1100px) {
-    .grid, .stats, .three { grid-template-columns: 1fr; }
-  }
+  .tab-btn.active, .day-tab-btn.active, .type-tab-btn.active { background:#16a34a; color:#fff; border-color:#16a34a; }
+  .page { display:none; }
+  .page.active { display:block; }
+  .stats { display:grid; grid-template-columns:repeat(8,1fr); gap:12px; margin-bottom:18px; }
+  .stat { background:linear-gradient(180deg,#101010 0%,#171717 100%); border:1px solid #252525; border-radius:16px; padding:16px; }
+  .stat .label { color:#9ca3af; font-size:12px; text-transform:uppercase; letter-spacing:.04em; font-weight:700; }
+  .stat .value { font-size:24px; font-weight:800; color:#f9fafb; margin-top:8px; }
+  .grid { display:grid; grid-template-columns:500px 1fr; gap:18px; align-items:start; }
+  .stack { display:grid; gap:18px; }
+  .card { background:linear-gradient(180deg,#111111 0%,#171717 100%); border-radius:18px; padding:18px; border:1px solid #252525; box-shadow:0 10px 28px rgba(0,0,0,.24); }
+  .card h2,.card h3 { margin-top:0; color:#f9fafb; }
+  .sub { color:#9ca3af; font-size:13px; margin-top:-4px; margin-bottom:14px; }
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .form-grid.one { grid-template-columns:1fr; }
+  .three { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+  label { display:block; font-size:12px; color:#d1d5db; font-weight:700; margin-bottom:6px; }
+  input,select,button { font:inherit; }
+  input,select { width:100%; padding:10px 12px; border:1px solid #2f2f2f; border-radius:10px; background:#0f0f0f; color:#f3f4f6; }
+  input[type="checkbox"] { width:auto; transform:scale(1.15); margin-right:8px; }
+  .checkbox-row { display:flex; align-items:center; gap:8px; margin-top:8px; color:#d1d5db; font-size:14px; font-weight:700; }
+  .btn-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+  button { border:none; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:700; }
+  .btn-primary { background:#16a34a; color:#fff; }
+  .btn-secondary { background:#2a2a2a; color:#f3f4f6; }
+  .btn-danger { background:#dc2626; color:#fff; }
+  .table-wrap { max-height:620px; overflow:auto; border:1px solid #262626; border-radius:12px; background:#0f0f0f; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th,td { border-bottom:1px solid #262626; padding:10px 8px; text-align:left; vertical-align:top; color:#f3f4f6; }
+  th { background:#0f0f0f; position:sticky; top:0; z-index:1; }
+  .pill { display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; font-weight:700; background:#052e16; color:#bbf7d0; }
+  .pill.dayoff { background:#2b1300; color:#fed7aa; }
+  .pill.timeoff { background:#3b0a0a; color:#fecaca; }
+  .pill.score { background:#0f2a12; color:#86efac; }
+  .pill.override { background:#1e293b; color:#bfdbfe; }
+  .pill.type { background:#1f2937; color:#bfdbfe; }
+  .status-bar { margin-top:12px; padding:10px 12px; border-radius:10px; background:#0d1a11; border:1px solid #1f3b2a; color:#bbf7d0; font-size:13px; }
+  .status-bar.error { background:#2a0d0d; border-color:#5b1a1a; color:#fecaca; }
+  .heatmap-wrap { overflow:auto; border:1px solid #262626; border-radius:14px; background:#0f0f0f; }
+  .heatmap { min-width:1060px; border-collapse:collapse; }
+  .heatmap th,.heatmap td { border:1px solid #262626; text-align:center; padding:8px; min-width:74px; height:44px; font-size:12px; }
+  .employee-col { min-width:280px !important; text-align:left !important; position:sticky; left:0; z-index:2; background:#101010; }
+  .sticky-top { position:sticky; top:0; z-index:3; }
+  .slot-empty { background:#111111; color:#6b7280; }
+  .slot-work { background:#16a34a; color:white; font-weight:700; }
+  .slot-lunch { background:#facc15; color:#111827; font-weight:700; }
+  .slot-timeoff { background:#b91c1c; color:white; font-weight:700; }
+  .coverage-0 { background:#111111; }
+  .coverage-1 { background:#052e16; }
+  .coverage-2 { background:#166534; }
+  .coverage-3 { background:#16a34a; color:white; }
+  .coverage-4 { background:#22c55e; color:white; }
+  .legend { display:flex; gap:12px; flex-wrap:wrap; margin:12px 0 0; font-size:12px; color:#d1d5db; }
+  .legend span { display:inline-flex; align-items:center; gap:6px; }
+  .swatch { width:16px; height:16px; border-radius:4px; border:1px solid rgba(255,255,255,.08); display:inline-block; }
+  .small { font-size:12px; color:#9ca3af; }
+  .hidden { display:none; }
+  .available-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; margin-top:12px; }
+  .available-item { background:#0f0f0f; border:1px solid #262626; border-radius:12px; padding:12px; }
+  .chart-box { background:#0f0f0f; border:1px solid #262626; border-radius:14px; padding:16px; }
+  .chart-controls { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+  .chart-wrap { width:100%; height:340px; position:relative; }
+  #performanceChart { width:100%; height:100%; display:block; background:#0f0f0f; border-radius:10px; }
+  @media (max-width:1100px) { .grid,.stats,.three { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
 <div class="app">
   <div class="hero">
-    <h1>AMS Hourly Estimator Scheduler</h1>
-    <p>Auto-saves locally, can auto-sync to Google Sheets, has editable employees, a separate heatmap page by day, weekly metric history, and monthly/biweekly graph overview.</p>
+    <h1>AMS Estimator Scheduler</h1>
+    <p>Hourly and National estimators with separate heatmaps, a combined heatmap, weekly history, overview graph, and Google Sheets sync.</p>
   </div>
 
   <div class="tabs">
     <button class="tab-btn active" data-page="dataPage">Data Entry</button>
-    <button class="tab-btn" data-page="heatmapPage">Heatmap</button>
+    <button class="tab-btn" data-page="heatmapPage">Heatmaps</button>
     <button class="tab-btn" data-page="weeklyPage">Weekly Numbers</button>
     <button class="tab-btn" data-page="overviewPage">Overview</button>
   </div>
 
   <div id="dataPage" class="page active">
     <div class="stats">
-      <div class="stat"><div class="label">Employees</div><div class="value" id="statEmployees">0</div></div>
+      <div class="stat"><div class="label">All Estimators</div><div class="value" id="statEmployees">0</div></div>
+      <div class="stat"><div class="label">Hourly</div><div class="value" id="statHourlyEmployees">0</div></div>
+      <div class="stat"><div class="label">National</div><div class="value" id="statNationalEmployees">0</div></div>
       <div class="stat"><div class="label">Time Off Entries</div><div class="value" id="statTimeOff">0</div></div>
       <div class="stat"><div class="label">Working Slots</div><div class="value" id="statSlots">0</div></div>
       <div class="stat"><div class="label">Avg Leads</div><div class="value" id="statAvgLeadsAssigned">0.0</div></div>
-      <div class="stat"><div class="label">Avg Booked BD</div><div class="value" id="statAvgBookedBd">0.0</div></div>
       <div class="stat"><div class="label">Avg Score</div><div class="value" id="statAvgCalculatedScore">0.0</div></div>
       <div class="stat"><div class="label">Sync</div><div class="value" id="statSyncState">Local</div></div>
     </div>
@@ -355,12 +112,25 @@
     <div class="grid">
       <div class="stack">
         <div class="card">
-          <h2>Employee Setup</h2>
-          <div class="sub">Edit existing employee data or add a new one.</div>
+          <h2>Estimator Setup</h2>
+          <div class="sub">Add or edit Hourly and National estimators separately.</div>
           <div class="form-grid one">
             <div>
-              <label for="employeeName">Employee name</label>
+              <label for="employeeName">Estimator name</label>
               <input id="employeeName" placeholder="John Smith" />
+            </div>
+          </div>
+          <div class="form-grid" style="margin-top: 12px;">
+            <div>
+              <label for="employeeType">Estimator type</label>
+              <select id="employeeType">
+                <option value="Hourly">Hourly</option>
+                <option value="National">National</option>
+              </select>
+            </div>
+            <div>
+              <label for="employeeNotes">Notes</label>
+              <input id="employeeNotes" placeholder="Closer, opener, flexible, etc." />
             </div>
           </div>
           <div class="form-grid" style="margin-top: 12px;">
@@ -368,166 +138,79 @@
               <label for="employeeDayOff">Weekday off</label>
               <select id="employeeDayOff"></select>
             </div>
-            <div>
-              <label for="employeeNotes">Notes</label>
-              <input id="employeeNotes" placeholder="Closer, opener, flexible, etc." />
-            </div>
+            <div></div>
           </div>
 
           <h3 style="margin-top:18px;">Performance stats</h3>
           <div class="form-grid">
-            <div>
-              <label for="employeeLeadsAssigned">Leads assigned</label>
-              <input id="employeeLeadsAssigned" type="number" min="0" step="0.1" value="35" />
-            </div>
-            <div>
-              <label for="employeeBookedBd">Booked BD</label>
-              <input id="employeeBookedBd" type="number" min="0" step="0.1" value="17" />
-            </div>
+            <div><label for="employeeLeadsAssigned">Leads assigned</label><input id="employeeLeadsAssigned" type="number" min="0" step="0.1" value="35" /></div>
+            <div><label for="employeeBookedBd">Booked BD</label><input id="employeeBookedBd" type="number" min="0" step="0.1" value="17" /></div>
           </div>
           <div class="form-grid" style="margin-top: 12px;">
-            <div>
-              <label for="employeeClosing">Closing</label>
-              <input id="employeeClosing" type="number" min="0" step="0.1" value="35" />
-            </div>
-            <div>
-              <label for="employeeSameDayClosing">Same-day closing</label>
-              <input id="employeeSameDayClosing" type="number" min="0" step="0.1" value="27" />
-            </div>
+            <div><label for="employeeClosing">Closing</label><input id="employeeClosing" type="number" min="0" step="0.1" value="35" /></div>
+            <div><label for="employeeSameDayClosing">Same-day closing</label><input id="employeeSameDayClosing" type="number" min="0" step="0.1" value="27" /></div>
           </div>
           <div class="form-grid" style="margin-top: 12px;">
-            <div>
-              <label for="employeeEng">ENG</label>
-              <input id="employeeEng" type="number" min="0" step="0.1" value="15" />
-            </div>
-            <div>
-              <label for="employeeCalculatedScore">Calculated score</label>
-              <input id="employeeCalculatedScore" type="text" value="Average (2.60)" disabled />
-            </div>
+            <div><label for="employeeEng">ENG</label><input id="employeeEng" type="number" min="0" step="0.1" value="15" /></div>
+            <div><label for="employeeCalculatedScore">Calculated score</label><input id="employeeCalculatedScore" type="text" value="Average (2.60)" disabled /></div>
           </div>
 
           <h3 style="margin-top:18px;">Normal schedule</h3>
           <div class="form-grid">
-            <div>
-              <label for="defaultStart">Start</label>
-              <input id="defaultStart" type="time" value="08:00" />
-            </div>
-            <div>
-              <label for="defaultEnd">End</label>
-              <input id="defaultEnd" type="time" value="17:00" />
-            </div>
+            <div><label for="defaultStart">Start</label><input id="defaultStart" type="time" value="08:00" /></div>
+            <div><label for="defaultEnd">End</label><input id="defaultEnd" type="time" value="17:00" /></div>
           </div>
           <div class="form-grid" style="margin-top: 12px;">
-            <div>
-              <label for="defaultLunchStart">Lunch start</label>
-              <input id="defaultLunchStart" type="time" value="12:00" />
-            </div>
-            <div>
-              <label for="defaultLunchEnd">Lunch end</label>
-              <input id="defaultLunchEnd" type="time" value="13:00" />
-            </div>
+            <div><label for="defaultLunchStart">Lunch start</label><input id="defaultLunchStart" type="time" value="12:00" /></div>
+            <div><label for="defaultLunchEnd">Lunch end</label><input id="defaultLunchEnd" type="time" value="13:00" /></div>
           </div>
 
           <div class="checkbox-row">
             <input id="hasOverride" type="checkbox" />
-            <label for="hasOverride" style="margin:0;">This employee has one different schedule day</label>
+            <label for="hasOverride" style="margin:0;">This estimator has one different schedule day</label>
           </div>
-
           <div id="overrideFields" class="hidden">
             <h3 style="margin-top:18px;">One-day custom override</h3>
             <div class="form-grid">
-              <div>
-                <label for="overrideDay">Override day</label>
-                <select id="overrideDay"></select>
-              </div>
-              <div>
-                <label for="overrideEnabled">Override status</label>
-                <select id="overrideEnabled">
-                  <option value="true">Working</option>
-                  <option value="false">Off</option>
-                </select>
-              </div>
+              <div><label for="overrideDay">Override day</label><select id="overrideDay"></select></div>
+              <div><label for="overrideEnabled">Override status</label><select id="overrideEnabled"><option value="true">Working</option><option value="false">Off</option></select></div>
             </div>
             <div class="form-grid" style="margin-top: 12px;">
-              <div>
-                <label for="overrideStart">Start</label>
-                <input id="overrideStart" type="time" value="10:00" />
-              </div>
-              <div>
-                <label for="overrideEnd">End</label>
-                <input id="overrideEnd" type="time" value="19:00" />
-              </div>
+              <div><label for="overrideStart">Start</label><input id="overrideStart" type="time" value="10:00" /></div>
+              <div><label for="overrideEnd">End</label><input id="overrideEnd" type="time" value="19:00" /></div>
             </div>
             <div class="form-grid" style="margin-top: 12px;">
-              <div>
-                <label for="overrideLunchStart">Lunch start</label>
-                <input id="overrideLunchStart" type="time" value="14:00" />
-              </div>
-              <div>
-                <label for="overrideLunchEnd">Lunch end</label>
-                <input id="overrideLunchEnd" type="time" value="15:00" />
-              </div>
+              <div><label for="overrideLunchStart">Lunch start</label><input id="overrideLunchStart" type="time" value="14:00" /></div>
+              <div><label for="overrideLunchEnd">Lunch end</label><input id="overrideLunchEnd" type="time" value="15:00" /></div>
             </div>
           </div>
 
           <div class="btn-row">
-            <button class="btn-primary" id="addEmployeeBtn">Add Employee</button>
+            <button class="btn-primary" id="addEmployeeBtn">Add Estimator</button>
             <button class="btn-secondary hidden" id="cancelEditBtn">Cancel Edit</button>
           </div>
         </div>
 
         <div class="card">
           <h2>Add Time Off</h2>
-          <div class="sub">Use this for vacation, sick, unpaid time off, or anything else where they are not there.</div>
+          <div class="sub">Applies to both Hourly and National estimators.</div>
           <div class="form-grid">
-            <div>
-              <label for="timeOffEmployee">Employee</label>
-              <select id="timeOffEmployee"></select>
-            </div>
-            <div>
-              <label for="timeOffDate">Date</label>
-              <input id="timeOffDate" type="date" />
-            </div>
+            <div><label for="timeOffEmployee">Estimator</label><select id="timeOffEmployee"></select></div>
+            <div><label for="timeOffDate">Date</label><input id="timeOffDate" type="date" /></div>
           </div>
           <div class="form-grid" style="margin-top: 12px;">
-            <div>
-              <label for="timeOffType">Type</label>
-              <select id="timeOffType">
-                <option>Vacation</option>
-                <option>Sick</option>
-                <option>Personal</option>
-                <option>Unpaid Time Off</option>
-                <option>Holiday</option>
-                <option>Other</option>
-              </select>
-            </div>
-            <div>
-              <label for="timeOffNote">Note</label>
-              <input id="timeOffNote" placeholder="Optional" />
-            </div>
+            <div><label for="timeOffType">Type</label><select id="timeOffType"><option>Vacation</option><option>Sick</option><option>Personal</option><option>Unpaid Time Off</option><option>Holiday</option><option>Other</option></select></div>
+            <div><label for="timeOffNote">Note</label><input id="timeOffNote" placeholder="Optional" /></div>
           </div>
-          <div class="btn-row">
-            <button class="btn-primary" id="addTimeOffBtn">Add Time Off</button>
-          </div>
+          <div class="btn-row"><button class="btn-primary" id="addTimeOffBtn">Add Time Off</button></div>
         </div>
 
         <div class="card">
           <h2>Google Sheets Sync</h2>
           <div class="sub">Reconnect cleanly, pull latest on load, and auto-save after changes.</div>
-          <div class="form-grid one">
-            <div>
-              <label for="scriptUrl">Apps Script Web App URL</label>
-              <input id="scriptUrl" placeholder="https://script.google.com/macros/s/.../exec" />
-            </div>
-          </div>
-          <div class="checkbox-row">
-            <input id="autoSyncToggle" type="checkbox" />
-            <label for="autoSyncToggle" style="margin:0;">Auto-save to Google Sheets after changes</label>
-          </div>
-          <div class="checkbox-row">
-            <input id="pullOnLoadToggle" type="checkbox" />
-            <label for="pullOnLoadToggle" style="margin:0;">Pull latest from Google Sheets when page opens</label>
-          </div>
+          <div class="form-grid one"><div><label for="scriptUrl">Apps Script Web App URL</label><input id="scriptUrl" placeholder="https://script.google.com/macros/s/.../exec" /></div></div>
+          <div class="checkbox-row"><input id="autoSyncToggle" type="checkbox" /><label for="autoSyncToggle" style="margin:0;">Auto-save to Google Sheets after changes</label></div>
+          <div class="checkbox-row"><input id="pullOnLoadToggle" type="checkbox" /><label for="pullOnLoadToggle" style="margin:0;">Pull latest from Google Sheets when page opens</label></div>
           <div class="btn-row">
             <button class="btn-secondary" id="saveScriptUrlBtn">Save URL</button>
             <button class="btn-primary" id="reconnectBtn">Reconnect</button>
@@ -543,13 +226,14 @@
 
       <div class="stack">
         <div class="card">
-          <h2>Employees</h2>
-          <div class="sub">Edit existing employees directly from this table.</div>
+          <h2>Estimators</h2>
+          <div class="sub">Edit existing estimators directly from this table.</div>
           <div class="table-wrap">
             <table>
               <thead>
                 <tr>
                   <th>Name</th>
+                  <th>Type</th>
                   <th>Day Off</th>
                   <th>Normal Schedule</th>
                   <th>Override</th>
@@ -568,12 +252,7 @@
           <div class="table-wrap">
             <table>
               <thead>
-                <tr>
-                  <th>Employee</th>
-                  <th>Date</th>
-                  <th>Type</th>
-                  <th></th>
-                </tr>
+                <tr><th>Estimator</th><th>Date</th><th>Type</th><th></th></tr>
               </thead>
               <tbody id="timeOffTable"></tbody>
             </table>
@@ -585,30 +264,16 @@
 
   <div id="heatmapPage" class="page">
     <div class="card">
+      <div class="type-tabs" id="heatmapTypeTabs"></div>
       <div class="three" style="margin-bottom: 12px;">
-        <div>
-          <label for="weekStart">Week starting (Monday)</label>
-          <input id="weekStart" type="date" />
-        </div>
-        <div>
-          <label for="hourStart">First hour</label>
-          <input id="hourStart" type="time" value="07:00" />
-        </div>
-        <div>
-          <label for="hourEnd">Last hour</label>
-          <input id="hourEnd" type="time" value="19:00" />
-        </div>
+        <div><label for="weekStart">Week starting (Monday)</label><input id="weekStart" type="date" /></div>
+        <div><label for="hourStart">First hour</label><input id="hourStart" type="time" value="07:00" /></div>
+        <div><label for="hourEnd">Last hour</label><input id="hourEnd" type="time" value="19:00" /></div>
       </div>
-
       <div class="day-tabs" id="heatmapDayTabs"></div>
-
-      <h2>Availability Heatmap</h2>
-      <div class="sub">Separate heatmap page with a tab for each day.</div>
-
-      <div class="heatmap-wrap">
-        <table class="heatmap" id="heatmapTable"></table>
-      </div>
-
+      <h2 id="heatmapTitle">Availability Heatmap</h2>
+      <div class="sub">Hourly only, National only, or Combined.</div>
+      <div class="heatmap-wrap"><table class="heatmap" id="heatmapTable"></table></div>
       <div class="legend">
         <span><i class="swatch" style="background:#16a34a"></i> Working</span>
         <span><i class="swatch" style="background:#facc15"></i> Lunch</span>
@@ -618,16 +283,10 @@
     </div>
 
     <div class="card" style="margin-top:18px;">
-      <h3>Employees Available at a Certain Time</h3>
+      <h3>Estimators Available at a Certain Time</h3>
       <div class="form-grid">
-        <div>
-          <label for="availableAtTime">Time</label>
-          <input id="availableAtTime" type="time" value="10:00" />
-        </div>
-        <div>
-          <label for="availableAtDate">Date in selected week</label>
-          <select id="availableAtDate"></select>
-        </div>
+        <div><label for="availableAtTime">Time</label><input id="availableAtTime" type="time" value="10:00" /></div>
+        <div><label for="availableAtDate">Date in selected week</label><select id="availableAtDate"></select></div>
       </div>
       <div id="availableEmployeesList" class="available-list"></div>
     </div>
@@ -643,46 +302,22 @@
       <div class="stack">
         <div class="card">
           <h2>Weekly Numbers</h2>
-          <div class="sub">Store a weekly snapshot for each employee. These are kept in history and used for the overview graphs.</div>
+          <div class="sub">Store a weekly snapshot for each estimator. Used for the overview graph.</div>
           <div class="form-grid">
-            <div>
-              <label for="weeklyEmployee">Employee</label>
-              <select id="weeklyEmployee"></select>
-            </div>
-            <div>
-              <label for="weeklyWeekStart">Week starting</label>
-              <input id="weeklyWeekStart" type="date" />
-            </div>
+            <div><label for="weeklyEmployee">Estimator</label><select id="weeklyEmployee"></select></div>
+            <div><label for="weeklyWeekStart">Week starting</label><input id="weeklyWeekStart" type="date" /></div>
           </div>
           <div class="form-grid" style="margin-top: 12px;">
-            <div>
-              <label for="weeklyLeadsAssigned">Leads assigned</label>
-              <input id="weeklyLeadsAssigned" type="number" min="0" step="0.1" value="35" />
-            </div>
-            <div>
-              <label for="weeklyBookedBd">Booked BD</label>
-              <input id="weeklyBookedBd" type="number" min="0" step="0.1" value="17" />
-            </div>
+            <div><label for="weeklyLeadsAssigned">Leads assigned</label><input id="weeklyLeadsAssigned" type="number" min="0" step="0.1" value="35" /></div>
+            <div><label for="weeklyBookedBd">Booked BD</label><input id="weeklyBookedBd" type="number" min="0" step="0.1" value="17" /></div>
           </div>
           <div class="form-grid" style="margin-top: 12px;">
-            <div>
-              <label for="weeklyClosing">Closing</label>
-              <input id="weeklyClosing" type="number" min="0" step="0.1" value="35" />
-            </div>
-            <div>
-              <label for="weeklySameDayClosing">Same-day closing</label>
-              <input id="weeklySameDayClosing" type="number" min="0" step="0.1" value="27" />
-            </div>
+            <div><label for="weeklyClosing">Closing</label><input id="weeklyClosing" type="number" min="0" step="0.1" value="35" /></div>
+            <div><label for="weeklySameDayClosing">Same-day closing</label><input id="weeklySameDayClosing" type="number" min="0" step="0.1" value="27" /></div>
           </div>
           <div class="form-grid" style="margin-top: 12px;">
-            <div>
-              <label for="weeklyEng">ENG</label>
-              <input id="weeklyEng" type="number" min="0" step="0.1" value="15" />
-            </div>
-            <div>
-              <label for="weeklyCalculatedScore">Calculated score</label>
-              <input id="weeklyCalculatedScore" type="text" value="Average (2.60)" disabled />
-            </div>
+            <div><label for="weeklyEng">ENG</label><input id="weeklyEng" type="number" min="0" step="0.1" value="15" /></div>
+            <div><label for="weeklyCalculatedScore">Calculated score</label><input id="weeklyCalculatedScore" type="text" value="Average (2.60)" disabled /></div>
           </div>
           <div class="btn-row">
             <button class="btn-primary" id="saveWeeklyBtn">Save Weekly Numbers</button>
@@ -690,25 +325,12 @@
           </div>
         </div>
       </div>
-
       <div class="stack">
         <div class="card">
           <h2>Weekly History</h2>
           <div class="table-wrap">
             <table>
-              <thead>
-                <tr>
-                  <th>Employee</th>
-                  <th>Week</th>
-                  <th>Leads</th>
-                  <th>BD</th>
-                  <th>Closing</th>
-                  <th>Same-day</th>
-                  <th>ENG</th>
-                  <th>Score</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
+              <thead><tr><th>Estimator</th><th>Week</th><th>Type</th><th>Leads</th><th>BD</th><th>Closing</th><th>Same-day</th><th>ENG</th><th>Score</th><th>Actions</th></tr></thead>
               <tbody id="weeklyHistoryTable"></tbody>
             </table>
           </div>
@@ -722,34 +344,12 @@
       <h2>Monthly / Biweekly Overview</h2>
       <div class="sub">Pick a metric and view biweekly or monthly trend lines from stored weekly history.</div>
       <div class="chart-controls">
-        <div>
-          <label for="overviewEmployee">Employee</label>
-          <select id="overviewEmployee"></select>
-        </div>
-        <div>
-          <label for="overviewMetric">Metric</label>
-          <select id="overviewMetric">
-            <option value="score">Calculated Score</option>
-            <option value="leadsAssigned">Leads Assigned</option>
-            <option value="bookedBd">Booked BD</option>
-            <option value="closing">Closing</option>
-            <option value="sameDayClosing">Same-day Closing</option>
-            <option value="eng">ENG</option>
-          </select>
-        </div>
-        <div>
-          <label for="overviewRange">View</label>
-          <select id="overviewRange">
-            <option value="biweekly">Biweekly</option>
-            <option value="monthly">Monthly</option>
-          </select>
-        </div>
+        <div><label for="overviewType">Estimator group</label><select id="overviewType"><option value="All">All</option><option value="Hourly">Hourly</option><option value="National">National</option></select></div>
+        <div><label for="overviewEmployee">Estimator</label><select id="overviewEmployee"></select></div>
+        <div><label for="overviewMetric">Metric</label><select id="overviewMetric"><option value="score">Calculated Score</option><option value="leadsAssigned">Leads Assigned</option><option value="bookedBd">Booked BD</option><option value="closing">Closing</option><option value="sameDayClosing">Same-day Closing</option><option value="eng">ENG</option></select></div>
+        <div><label for="overviewRange">View</label><select id="overviewRange"><option value="biweekly">Biweekly</option><option value="monthly">Monthly</option></select></div>
       </div>
-      <div class="chart-box">
-        <div class="chart-wrap">
-          <canvas id="performanceChart" width="1200" height="340"></canvas>
-        </div>
-      </div>
+      <div class="chart-box"><div class="chart-wrap"><canvas id="performanceChart" width="1200" height="340"></canvas></div></div>
       <div id="overviewSummary" class="small" style="margin-top:12px;"></div>
     </div>
   </div>
@@ -758,984 +358,90 @@
 </div>
 
 <script>
-const STORAGE_KEY = 'amsHourlyEstimatorSchedulerV6';
+const STORAGE_KEY = 'amsEstimatorSchedulerV7';
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const DAY_OFF_OPTIONS = ['No Day Off', ...DAYS];
+const HEATMAP_TYPES = ['Combined', 'Hourly', 'National'];
 let autoSyncTimer = null;
 let selectedHeatmapDay = 'Monday';
+let selectedHeatmapType = 'Combined';
 let state = loadState();
 
 function defaultState() {
-  return {
-    scriptUrl: '',
-    autoSync: false,
-    pullOnLoad: false,
-    lastSyncAt: '',
-    employees: [],
-    timeOff: [],
-    weeklyMetrics: []
-  };
+  return { scriptUrl:'', autoSync:false, pullOnLoad:false, lastSyncAt:'', employees:[], timeOff:[], weeklyMetrics:[] };
 }
-
 function loadState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? { ...defaultState(), ...JSON.parse(raw) } : defaultState();
-  } catch {
-    return defaultState();
-  }
+  try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? { ...defaultState(), ...JSON.parse(raw) } : defaultState(); }
+  catch { return defaultState(); }
 }
-
-function saveStateLocal() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
-
-function setSyncStatus(message, isError = false) {
-  const box = qs('syncStatus');
-  const stat = qs('statSyncState');
-  box.textContent = message;
-  box.classList.toggle('error', isError);
+function saveStateLocal() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function setSyncStatus(message, isError=false) {
+  const box = qs('syncStatus'); const stat = qs('statSyncState');
+  box.textContent = message; box.classList.toggle('error', isError);
   stat.textContent = isError ? 'Error' : (state.scriptUrl ? (state.autoSync ? 'Auto Sync' : 'Connected') : 'Local');
 }
-
-function uid() {
-  return Math.random().toString(36).slice(2, 10);
-}
-
-function qs(id) { return document.getElementById(id); }
-
-function getTimeOffCount(employeeId) {
-  return state.timeOff.filter(x => x.employeeId === employeeId).length;
-}
-
-function scoreLeadsAssigned(value, employeeId) {
-  const workedDays = Math.max(1, 5 - getTimeOffCount(employeeId));
-  const adjustedPer5 = (Number(value || 0) / workedDays) * 5;
-  if (adjustedPer5 >= 50) return 4;
-  if (adjustedPer5 >= 35) return 3;
-  if (adjustedPer5 >= 20) return 2;
-  return 1;
-}
-
-function scoreBookedBd(value) {
-  value = Number(value || 0);
-  if (value >= 25) return 4;
-  if (value >= 20) return 3;
-  if (value >= 17) return 2;
-  return 1;
-}
-
-function scoreClosing(value) {
-  value = Number(value || 0);
-  if (value >= 40) return 4;
-  if (value >= 35) return 3;
-  if (value >= 30) return 2;
-  return 1;
-}
-
-function scoreSameDayClosing(value) {
-  value = Number(value || 0);
-  if (value >= 32) return 4;
-  if (value >= 27) return 3;
-  if (value >= 22) return 2;
-  return 1;
-}
-
-function scoreEng(value) {
-  value = Number(value || 0);
-  if (value <= 10) return 4;
-  if (value <= 15) return 3;
-  if (value <= 20) return 2;
-  return 1;
-}
-
-function calculateScoreFromValues(values, employeeId = '__preview__') {
-  const parts = [
-    scoreLeadsAssigned(values.leadsAssigned, employeeId),
-    scoreBookedBd(values.bookedBd),
-    scoreClosing(values.closing),
-    scoreSameDayClosing(values.sameDayClosing),
-    scoreEng(values.eng)
-  ];
-  const avg = parts.reduce((a, b) => a + b, 0) / parts.length;
-  let label = 'Poor';
-  if (avg >= 3.5) label = 'Good';
-  else if (avg >= 2.5) label = 'Average';
-  else if (avg >= 1.75) label = 'Okay';
-  return { numeric: avg.toFixed(2), label };
-}
-
-function calculateEmployeeScore(employee) {
-  return calculateScoreFromValues({
-    leadsAssigned: employee.leadsAssigned,
-    bookedBd: employee.bookedBd,
-    closing: employee.closing,
-    sameDayClosing: employee.sameDayClosing,
-    eng: employee.eng
-  }, employee.id);
-}
-
-function updateCalculatedScorePreview() {
-  const preview = {
-    leadsAssigned: Number(qs('employeeLeadsAssigned').value || 0),
-    bookedBd: Number(qs('employeeBookedBd').value || 0),
-    closing: Number(qs('employeeClosing').value || 0),
-    sameDayClosing: Number(qs('employeeSameDayClosing').value || 0),
-    eng: Number(qs('employeeEng').value || 0)
-  };
-  const score = calculateScoreFromValues(preview);
-  qs('employeeCalculatedScore').value = `${score.label} (${score.numeric})`;
-}
-
-function updateWeeklyCalculatedScorePreview() {
-  const preview = {
-    leadsAssigned: Number(qs('weeklyLeadsAssigned').value || 0),
-    bookedBd: Number(qs('weeklyBookedBd').value || 0),
-    closing: Number(qs('weeklyClosing').value || 0),
-    sameDayClosing: Number(qs('weeklySameDayClosing').value || 0),
-    eng: Number(qs('weeklyEng').value || 0)
-  };
-  const score = calculateScoreFromValues(preview, qs('weeklyEmployee').value || '__preview__');
-  qs('weeklyCalculatedScore').value = `${score.label} (${score.numeric})`;
-}
-
-function timeToMinutes(t) {
-  if (!t) return 0;
-  const [h, m] = t.split(':').map(Number);
-  return h * 60 + m;
-}
-
-function minutesToTime(mins) {
-  const h = Math.floor(mins / 60).toString().padStart(2, '0');
-  const m = (mins % 60).toString().padStart(2, '0');
-  return `${h}:${m}`;
-}
-
-function getMonday(dateString) {
-  const d = new Date(dateString + 'T12:00:00');
-  const jsDay = d.getDay();
-  const diff = jsDay === 0 ? -6 : 1 - jsDay;
-  d.setDate(d.getDate() + diff);
-  return d.toISOString().slice(0, 10);
-}
-
-function addDays(dateString, amount) {
-  const d = new Date(dateString + 'T12:00:00');
-  d.setDate(d.getDate() + amount);
-  return d.toISOString().slice(0, 10);
-}
-
-function getTimeSlots(start, end) {
-  const result = [];
-  let s = timeToMinutes(start);
-  const e = timeToMinutes(end);
-  while (s < e) {
-    result.push(minutesToTime(s));
-    s += 60;
-  }
-  return result;
-}
-
-function getJsDayName(date) {
-  return ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][new Date(date + 'T12:00:00').getDay()];
-}
-
-function getScheduleForDate(employee, date) {
-  const jsDay = new Date(date + 'T12:00:00').getDay();
-  if (jsDay === 0) return { available: false, reason: 'Sunday' };
-  const dayName = getJsDayName(date);
-  if (employee.dayOff && employee.dayOff !== 'No Day Off' && dayName === employee.dayOff) return { available: false, reason: 'Day Off' };
-
-  if (employee.override?.enabled && employee.override.day === dayName) {
-    if (!employee.override.available) return { available: false, reason: 'Override Off', overridden: true };
-    return {
-      available: true,
-      start: employee.override.start,
-      end: employee.override.end,
-      lunchStart: employee.override.lunchStart,
-      lunchEnd: employee.override.lunchEnd,
-      overridden: true
-    };
-  }
-
-  return {
-    available: true,
-    start: employee.defaultSchedule.start,
-    end: employee.defaultSchedule.end,
-    lunchStart: employee.defaultSchedule.lunchStart,
-    lunchEnd: employee.defaultSchedule.lunchEnd,
-    overridden: false
-  };
-}
-
-function hasTimeOff(empId, date) {
-  return state.timeOff.find(x => x.employeeId === empId && x.date === date);
-}
-
-function slotStatus(empId, date, time) {
-  const employee = state.employees.find(e => e.id === empId);
-  if (!employee) return 'off';
-  const jsDay = new Date(date + 'T12:00:00').getDay();
-  if (jsDay === 0) return 'off';
-  if (hasTimeOff(empId, date)) return 'timeoff';
-  const schedule = getScheduleForDate(employee, date);
-  if (!schedule.available) return 'off';
-  const mins = timeToMinutes(time);
-  const start = timeToMinutes(schedule.start);
-  const end = timeToMinutes(schedule.end);
-  const lunchStart = timeToMinutes(schedule.lunchStart);
-  const lunchEnd = timeToMinutes(schedule.lunchEnd);
-  if (mins < start || mins >= end) return 'off';
-  if (mins >= lunchStart && mins < lunchEnd) return 'lunch';
-  return 'work';
-}
-
-function queueAutoSync() {
-  saveStateLocal();
-  if (!state.autoSync || !state.scriptUrl) return;
-  clearTimeout(autoSyncTimer);
-  setSyncStatus('Changes saved locally. Auto-saving to Google Sheets...');
-  autoSyncTimer = setTimeout(() => {
-    pushToSheet(true);
-  }, 1200);
-}
-
-function populateEmployeeForm(employee) {
-  qs('employeeName').value = employee.name || '';
-  qs('employeeNotes').value = employee.notes || '';
-  qs('employeeLeadsAssigned').value = employee.leadsAssigned ?? 35;
-  qs('employeeBookedBd').value = employee.bookedBd ?? 17;
-  qs('employeeClosing').value = employee.closing ?? 35;
-  qs('employeeSameDayClosing').value = employee.sameDayClosing ?? 27;
-  qs('employeeEng').value = employee.eng ?? 15;
-  qs('employeeDayOff').value = employee.dayOff || 'No Day Off';
-  qs('defaultStart').value = employee.defaultSchedule?.start || '08:00';
-  qs('defaultEnd').value = employee.defaultSchedule?.end || '17:00';
-  qs('defaultLunchStart').value = employee.defaultSchedule?.lunchStart || '12:00';
-  qs('defaultLunchEnd').value = employee.defaultSchedule?.lunchEnd || '13:00';
-  qs('hasOverride').checked = !!employee.override?.enabled;
-  toggleOverrideFields();
-  qs('overrideDay').value = employee.override?.day || 'Monday';
-  qs('overrideEnabled').value = String(employee.override?.available ?? true);
-  qs('overrideStart').value = employee.override?.start || '10:00';
-  qs('overrideEnd').value = employee.override?.end || '19:00';
-  qs('overrideLunchStart').value = employee.override?.lunchStart || '14:00';
-  qs('overrideLunchEnd').value = employee.override?.lunchEnd || '15:00';
-  updateCalculatedScorePreview();
-}
-
-function resetEmployeeForm() {
-  qs('employeeName').value = '';
-  qs('employeeNotes').value = '';
-  qs('employeeLeadsAssigned').value = 35;
-  qs('employeeBookedBd').value = 17;
-  qs('employeeClosing').value = 35;
-  qs('employeeSameDayClosing').value = 27;
-  qs('employeeEng').value = 15;
-  qs('employeeDayOff').value = 'No Day Off';
-  qs('defaultStart').value = '08:00';
-  qs('defaultEnd').value = '17:00';
-  qs('defaultLunchStart').value = '12:00';
-  qs('defaultLunchEnd').value = '13:00';
-  qs('hasOverride').checked = false;
-  toggleOverrideFields();
-  qs('overrideDay').value = 'Monday';
-  qs('overrideEnabled').value = 'true';
-  qs('overrideStart').value = '10:00';
-  qs('overrideEnd').value = '19:00';
-  qs('overrideLunchStart').value = '14:00';
-  qs('overrideLunchEnd').value = '15:00';
-  qs('addEmployeeBtn').textContent = 'Add Employee';
-  qs('cancelEditBtn').classList.add('hidden');
-  delete qs('addEmployeeBtn').dataset.editingId;
-  updateCalculatedScorePreview();
-}
-
-function editEmployee(id) {
-  const employee = state.employees.find(e => e.id === id);
-  if (!employee) return;
-  populateEmployeeForm(employee);
-  qs('addEmployeeBtn').dataset.editingId = id;
-  qs('addEmployeeBtn').textContent = 'Save Employee';
-  qs('cancelEditBtn').classList.remove('hidden');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function addEmployee() {
-  const name = qs('employeeName').value.trim();
-  if (!name) return alert('Enter employee name.');
-
-  const editingId = qs('addEmployeeBtn').dataset.editingId || '';
-  const employee = {
-    id: editingId || uid(),
-    name,
-    role: 'Hourly Estimator',
-    notes: qs('employeeNotes').value.trim(),
-    leadsAssigned: Number(qs('employeeLeadsAssigned').value || 0),
-    bookedBd: Number(qs('employeeBookedBd').value || 0),
-    closing: Number(qs('employeeClosing').value || 0),
-    sameDayClosing: Number(qs('employeeSameDayClosing').value || 0),
-    eng: Number(qs('employeeEng').value || 0),
-    dayOff: qs('employeeDayOff').value,
-    defaultSchedule: {
-      start: qs('defaultStart').value,
-      end: qs('defaultEnd').value,
-      lunchStart: qs('defaultLunchStart').value,
-      lunchEnd: qs('defaultLunchEnd').value
-    },
-    override: {
-      enabled: qs('hasOverride').checked,
-      day: qs('overrideDay').value,
-      available: qs('overrideEnabled').value === 'true',
-      start: qs('overrideStart').value,
-      end: qs('overrideEnd').value,
-      lunchStart: qs('overrideLunchStart').value,
-      lunchEnd: qs('overrideLunchEnd').value
-    }
-  };
-
-  if (employee.override.enabled && employee.override.day === employee.dayOff && employee.dayOff !== 'No Day Off') {
-    return alert('Override day cannot be the same as the weekday off.');
-  }
-
-  if (editingId) {
-    const index = state.employees.findIndex(e => e.id === editingId);
-    if (index >= 0) state.employees[index] = employee;
-  } else {
-    state.employees.push(employee);
-  }
-
-  resetEmployeeForm();
-  renderAll();
-  queueAutoSync();
-}
-
-function addTimeOff() {
-  const employeeId = qs('timeOffEmployee').value;
-  const date = qs('timeOffDate').value;
-  if (!employeeId || !date) return alert('Pick employee and date.');
-  const jsDay = new Date(date + 'T12:00:00').getDay();
-  if (jsDay === 0) return alert('Sunday is already off for everyone.');
-  state.timeOff.push({
-    id: uid(),
-    employeeId,
-    date,
-    type: qs('timeOffType').value,
-    note: qs('timeOffNote').value.trim()
-  });
-  qs('timeOffNote').value = '';
-  renderAll();
-  queueAutoSync();
-}
-
-function deleteEmployee(id) {
-  if (!confirm('Delete employee and related time off/history?')) return;
-  state.employees = state.employees.filter(x => x.id !== id);
-  state.timeOff = state.timeOff.filter(x => x.employeeId !== id);
-  state.weeklyMetrics = state.weeklyMetrics.filter(x => x.employeeId !== id);
-  renderAll();
-  queueAutoSync();
-}
-
-function deleteTimeOff(id) {
-  state.timeOff = state.timeOff.filter(x => x.id !== id);
-  renderAll();
-  queueAutoSync();
-}
-
-function populateWeeklyForm(entry) {
-  qs('weeklyEmployee').value = entry.employeeId;
-  qs('weeklyWeekStart').value = entry.weekStart;
-  qs('weeklyLeadsAssigned').value = entry.leadsAssigned;
-  qs('weeklyBookedBd').value = entry.bookedBd;
-  qs('weeklyClosing').value = entry.closing;
-  qs('weeklySameDayClosing').value = entry.sameDayClosing;
-  qs('weeklyEng').value = entry.eng;
-  qs('saveWeeklyBtn').dataset.editingId = entry.id;
-  qs('saveWeeklyBtn').textContent = 'Save Weekly Update';
-  qs('cancelWeeklyEditBtn').classList.remove('hidden');
-  updateWeeklyCalculatedScorePreview();
-}
-
-function resetWeeklyForm() {
-  qs('weeklyEmployee').value = state.employees[0]?.id || '';
-  qs('weeklyWeekStart').value = getMonday(new Date().toISOString().slice(0,10));
-  qs('weeklyLeadsAssigned').value = 35;
-  qs('weeklyBookedBd').value = 17;
-  qs('weeklyClosing').value = 35;
-  qs('weeklySameDayClosing').value = 27;
-  qs('weeklyEng').value = 15;
-  qs('saveWeeklyBtn').textContent = 'Save Weekly Numbers';
-  qs('cancelWeeklyEditBtn').classList.add('hidden');
-  delete qs('saveWeeklyBtn').dataset.editingId;
-  updateWeeklyCalculatedScorePreview();
-}
-
-function saveWeeklyMetrics() {
-  const employeeId = qs('weeklyEmployee').value;
-  const weekStart = qs('weeklyWeekStart').value;
-  if (!employeeId || !weekStart) return alert('Pick employee and week starting date.');
-  const editingId = qs('saveWeeklyBtn').dataset.editingId || '';
-  const entry = {
-    id: editingId || uid(),
-    employeeId,
-    weekStart,
-    leadsAssigned: Number(qs('weeklyLeadsAssigned').value || 0),
-    bookedBd: Number(qs('weeklyBookedBd').value || 0),
-    closing: Number(qs('weeklyClosing').value || 0),
-    sameDayClosing: Number(qs('weeklySameDayClosing').value || 0),
-    eng: Number(qs('weeklyEng').value || 0)
-  };
-
-  const dupeIndex = state.weeklyMetrics.findIndex(x => x.employeeId === employeeId && x.weekStart === weekStart && x.id !== editingId);
-  if (dupeIndex >= 0) {
-    if (!confirm('A weekly entry already exists for this employee and week. Replace it?')) return;
-    state.weeklyMetrics.splice(dupeIndex, 1);
-  }
-
-  if (editingId) {
-    const index = state.weeklyMetrics.findIndex(x => x.id === editingId);
-    if (index >= 0) state.weeklyMetrics[index] = entry;
-  } else {
-    state.weeklyMetrics.push(entry);
-  }
-
-  resetWeeklyForm();
-  renderAll();
-  queueAutoSync();
-}
-
-function editWeeklyMetrics(id) {
-  const entry = state.weeklyMetrics.find(x => x.id === id);
-  if (!entry) return;
-  populateWeeklyForm(entry);
-  document.querySelector('[data-page="weeklyPage"]').click();
-}
-
-function deleteWeeklyMetrics(id) {
-  state.weeklyMetrics = state.weeklyMetrics.filter(x => x.id !== id);
-  renderAll();
-  queueAutoSync();
-}
-
-function exportData() {
-  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'ams-hourly-estimator-scheduler.json';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function importData(file) {
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    try {
-      const parsed = JSON.parse(e.target.result);
-      state = {
-        ...defaultState(),
-        ...parsed,
-        employees: parsed.employees || [],
-        timeOff: parsed.timeOff || [],
-        weeklyMetrics: parsed.weeklyMetrics || []
-      };
-      renderAll();
-      queueAutoSync();
-      alert('Import complete.');
-    } catch {
-      alert('Invalid JSON file.');
-    }
-  };
-  reader.readAsText(file);
-}
-
-function clearAll() {
-  if (!confirm('Clear all saved data?')) return;
-  state = defaultState();
-  renderAll();
-  saveStateLocal();
-  setSyncStatus('All local data cleared.');
-}
-
-function toggleOverrideFields() {
-  qs('overrideFields').classList.toggle('hidden', !qs('hasOverride').checked);
-}
-
-function saveScriptUrl() {
-  state.scriptUrl = qs('scriptUrl').value.trim();
-  state.autoSync = qs('autoSyncToggle').checked;
-  state.pullOnLoad = qs('pullOnLoadToggle').checked;
-  saveStateLocal();
-  setSyncStatus(state.scriptUrl ? 'Connection settings saved.' : 'Using local save only.');
-}
-
-async function reconnectSheet() {
-  state.scriptUrl = qs('scriptUrl').value.trim();
-  state.autoSync = qs('autoSyncToggle').checked;
-  state.pullOnLoad = qs('pullOnLoadToggle').checked;
-  saveStateLocal();
-  if (!state.scriptUrl) {
-    setSyncStatus('No Apps Script URL saved. Using local save only.', true);
-    return;
-  }
-  setSyncStatus('Checking Google Sheets connection...');
-  try {
-    const response = await fetch(state.scriptUrl + '?action=getAll&ts=' + Date.now());
-    const data = await response.json();
-    if (!data.ok) throw new Error(data.message || 'Connection failed');
-    setSyncStatus('Google Sheets connected successfully.');
-    qs('statSyncState').textContent = state.autoSync ? 'Auto Sync' : 'Connected';
-  } catch (error) {
-    setSyncStatus('Could not connect to Google Sheets. Check the Apps Script URL and deployment.', true);
-    console.error(error);
-  }
-}
-
-async function pullFromSheet(silent = false) {
-  const url = qs('scriptUrl').value.trim() || state.scriptUrl;
-  if (!url) {
-    if (!silent) alert('Paste your Apps Script web app URL first.');
-    return;
-  }
-  try {
-    if (!silent) setSyncStatus('Pulling latest data from Google Sheets...');
-    const response = await fetch(url + '?action=getAll&ts=' + Date.now());
-    const data = await response.json();
-    if (!data.ok) throw new Error(data.message || 'Pull failed');
-    state.employees = data.employees || [];
-    state.timeOff = data.timeOff || [];
-    state.weeklyMetrics = data.weeklyMetrics || [];
-    state.scriptUrl = url;
-    state.lastSyncAt = new Date().toLocaleString();
-    renderAll();
-    saveStateLocal();
-    setSyncStatus('Pulled latest Google Sheets data' + (state.lastSyncAt ? ` • ${state.lastSyncAt}` : ''));
-  } catch (error) {
-    setSyncStatus('Could not pull from Google Sheets.', true);
-    console.error(error);
-    if (!silent) alert('Could not pull from Google Sheets.');
-  }
-}
-
-async function pushToSheet(silent = false) {
-  const url = qs('scriptUrl').value.trim() || state.scriptUrl;
-  if (!url) {
-    if (!silent) alert('Paste your Apps Script web app URL first.');
-    return;
-  }
-  try {
-    if (!silent) setSyncStatus('Saving to Google Sheets...');
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({
-        action: 'saveAll',
-        employees: state.employees,
-        timeOff: state.timeOff,
-        weeklyMetrics: state.weeklyMetrics
-      })
-    });
-    const data = await response.json();
-    if (!data.ok) throw new Error(data.message || 'Save failed');
-    state.scriptUrl = url;
-    state.lastSyncAt = new Date().toLocaleString();
-    saveStateLocal();
-    setSyncStatus('Saved to Google Sheets' + (state.lastSyncAt ? ` • ${state.lastSyncAt}` : ''));
-    qs('statSyncState').textContent = state.autoSync ? 'Auto Sync' : 'Connected';
-  } catch (error) {
-    setSyncStatus('Could not save to Google Sheets.', true);
-    console.error(error);
-    if (!silent) alert('Could not save to Google Sheets.');
-  }
-}
-
-function renderEmployeesTable() {
-  qs('employeesTable').innerHTML = state.employees.length ? state.employees.map(e => {
-    const normal = `${e.defaultSchedule.start}-${e.defaultSchedule.end}<br><span class="small">Lunch ${e.defaultSchedule.lunchStart}-${e.defaultSchedule.lunchEnd}</span>`;
-    const override = e.override?.enabled
-      ? `<span class="pill override">${e.override.day}</span><br><span class="small">${e.override.available ? `${e.override.start}-${e.override.end}` : 'Off'}</span>`
-      : '<span class="small">None</span>';
-    const score = calculateEmployeeScore(e);
-    return `
-      <tr>
-        <td><strong>${e.name}</strong><br><span class="small">${e.role}${e.notes ? ` • ${e.notes}` : ''}</span></td>
-        <td><span class="pill dayoff">${e.dayOff || 'No Day Off'}</span></td>
-        <td>${normal}</td>
-        <td>${override}</td>
-        <td>
-          <span class="small">Leads ${e.leadsAssigned}</span><br>
-          <span class="small">BD ${e.bookedBd}</span><br>
-          <span class="small">Closing ${e.closing}</span><br>
-          <span class="small">Same-day ${e.sameDayClosing}</span><br>
-          <span class="small">ENG ${e.eng}</span>
-        </td>
-        <td><span class="pill score">${score.label}</span><br><span class="small">${score.numeric}</span></td>
-        <td><div class="btn-row"><button class="btn-secondary" onclick="editEmployee('${e.id}')">Edit</button><button class="btn-danger" onclick="deleteEmployee('${e.id}')">Delete</button></div></td>
-      </tr>
-    `;
-  }).join('') : '<tr><td colspan="7" class="small">No employees yet.</td></tr>';
-}
-
-function renderTimeOffTable() {
-  qs('timeOffTable').innerHTML = state.timeOff.length ? [...state.timeOff].sort((a,b) => a.date.localeCompare(b.date)).map(t => {
-    const emp = state.employees.find(e => e.id === t.employeeId);
-    return `
-      <tr>
-        <td>${emp ? emp.name : 'Unknown'}</td>
-        <td>${t.date}</td>
-        <td><span class="pill timeoff">${t.type}</span></td>
-        <td><button class="btn-danger" onclick="deleteTimeOff('${t.id}')">X</button></td>
-      </tr>
-    `;
-  }).join('') : '<tr><td colspan="4" class="small">No time off entered.</td></tr>';
-}
-
-function renderWeeklyHistoryTable() {
-  qs('weeklyHistoryTable').innerHTML = state.weeklyMetrics.length ? [...state.weeklyMetrics]
-    .sort((a,b) => (b.weekStart + b.employeeId).localeCompare(a.weekStart + a.employeeId))
-    .map(entry => {
-      const emp = state.employees.find(e => e.id === entry.employeeId);
-      const score = calculateScoreFromValues(entry, entry.employeeId);
-      return `
-        <tr>
-          <td>${emp ? emp.name : 'Unknown'}</td>
-          <td>${entry.weekStart}</td>
-          <td>${entry.leadsAssigned}</td>
-          <td>${entry.bookedBd}</td>
-          <td>${entry.closing}</td>
-          <td>${entry.sameDayClosing}</td>
-          <td>${entry.eng}</td>
-          <td><span class="pill score">${score.label}</span><br><span class="small">${score.numeric}</span></td>
-          <td><div class="btn-row"><button class="btn-secondary" onclick="editWeeklyMetrics('${entry.id}')">Edit</button><button class="btn-danger" onclick="deleteWeeklyMetrics('${entry.id}')">Delete</button></div></td>
-        </tr>
-      `;
-    }).join('') : '<tr><td colspan="9" class="small">No weekly history yet.</td></tr>';
-}
-
-function renderStats() {
-  qs('statEmployees').textContent = state.employees.length;
-  qs('statTimeOff').textContent = state.timeOff.length;
-  qs('statAvgLeadsAssigned').textContent = state.employees.length ? (state.employees.reduce((sum, e) => sum + Number(e.leadsAssigned || 0), 0) / state.employees.length).toFixed(1) : '0.0';
-  qs('statAvgBookedBd').textContent = state.employees.length ? (state.employees.reduce((sum, e) => sum + Number(e.bookedBd || 0), 0) / state.employees.length).toFixed(1) : '0.0';
-  qs('statAvgCalculatedScore').textContent = state.employees.length ? (state.employees.reduce((sum, e) => sum + Number(calculateEmployeeScore(e).numeric), 0) / state.employees.length).toFixed(2) : '0.0';
-
-  const weekStart = qs('weekStart').value || getMonday(new Date().toISOString().slice(0,10));
-  const times = getTimeSlots(qs('hourStart').value || '07:00', qs('hourEnd').value || '19:00');
-  let working = 0;
-  for (let d = 0; d < 6; d++) {
-    const date = addDays(weekStart, d);
-    for (const e of state.employees) {
-      for (const t of times) {
-        if (slotStatus(e.id, date, t) === 'work') working++;
-      }
-    }
-  }
-  qs('statSlots').textContent = working;
-}
-
-function coverageClass(count) {
-  if (count <= 0) return 'coverage-0';
-  if (count === 1) return 'coverage-1';
-  if (count === 2) return 'coverage-2';
-  if (count === 3) return 'coverage-3';
-  return 'coverage-4';
-}
-
-function renderHeatmapDayTabs() {
-  qs('heatmapDayTabs').innerHTML = DAYS.map(day => `<button class="day-tab-btn ${selectedHeatmapDay === day ? 'active' : ''}" onclick="setHeatmapDay('${day}')">${day}</button>`).join('');
-}
-
-function setHeatmapDay(day) {
-  selectedHeatmapDay = day;
-  renderHeatmap();
-}
-
-function renderAvailableEmployees() {
-  const date = qs('availableAtDate').value;
-  const time = qs('availableAtTime').value;
-  if (!date || !time) {
-    qs('availableEmployeesList').innerHTML = '<div class="available-item">Pick a date and time.</div>';
-    return;
-  }
-  const matches = state.employees.filter(emp => slotStatus(emp.id, date, time) === 'work');
-  qs('availableEmployeesList').innerHTML = matches.length ? matches.map(emp => {
-    const score = calculateEmployeeScore(emp);
-    return `<div class="available-item"><strong>${emp.name}</strong><br><span class="small">${time} • ${score.label} ${score.numeric}</span></div>`;
-  }).join('') : '<div class="available-item">No employees available at that time.</div>';
-}
-
-function renderHeatmap() {
-  renderHeatmapDayTabs();
-  const weekStart = qs('weekStart').value || getMonday(new Date().toISOString().slice(0,10));
-  qs('weekStart').value = weekStart;
-  const dayIndex = DAYS.indexOf(selectedHeatmapDay);
-  const date = addDays(weekStart, dayIndex >= 0 ? dayIndex : 0);
-  const timeSlots = getTimeSlots(qs('hourStart').value || '07:00', qs('hourEnd').value || '19:00');
-  let html = '';
-
-  html += `<tr><th class="employee-col sticky-top">${selectedHeatmapDay}<br><span class="small">${date}</span></th>`;
-  for (const t of timeSlots) {
-    const availableCount = state.employees.filter(e => slotStatus(e.id, date, t) === 'work').length;
-    html += `<th class="sticky-top ${coverageClass(availableCount)}">${t}<br>${availableCount}</th>`;
-  }
-  html += '</tr>';
-
-  for (const emp of state.employees) {
-    const schedule = getScheduleForDate(emp, date);
-    const score = calculateEmployeeScore(emp);
-    const meta = hasTimeOff(emp.id, date)
-      ? 'Time Off'
-      : schedule.overridden
-        ? 'Override'
-        : selectedHeatmapDay === emp.dayOff
-          ? 'Day Off'
-          : 'Normal';
-    html += `<tr><td class="employee-col"><strong>${emp.name}</strong><br><span class="small">${score.label} ${score.numeric} • ${meta}</span></td>`;
-    for (const t of timeSlots) {
-      const status = slotStatus(emp.id, date, t);
-      const label = status === 'work' ? 'Work' : status === 'lunch' ? 'Lunch' : status === 'timeoff' ? 'Off' : '';
-      html += `<td class="slot-${status === 'off' ? 'empty' : status}" title="${emp.name} - ${label || 'Off'}">${label}</td>`;
-    }
-    html += '</tr>';
-  }
-  qs('heatmapTable').innerHTML = html || '<tr><td>No data.</td></tr>';
-  renderCoverageSummary(weekStart, timeSlots);
-  renderAvailableAtDateOptions();
-  renderAvailableEmployees();
-}
-
-function renderAvailableAtDateOptions() {
-  const weekStart = qs('weekStart').value || getMonday(new Date().toISOString().slice(0,10));
-  const options = DAYS.map((day, i) => {
-    const date = addDays(weekStart, i);
-    return `<option value="${date}">${day} • ${date}</option>`;
-  }).join('');
-  const current = qs('availableAtDate').value;
-  qs('availableAtDate').innerHTML = options;
-  if ([...qs('availableAtDate').options].some(opt => opt.value === current)) {
-    qs('availableAtDate').value = current;
-  } else {
-    qs('availableAtDate').value = addDays(weekStart, DAYS.indexOf(selectedHeatmapDay));
-  }
-}
-
-function renderCoverageSummary(weekStart, timeSlots) {
-  let totalWork = 0, totalLunch = 0, totalTimeOff = 0;
-  let busiest = { label: '-', count: -1 };
-  let weakest = { label: '-', count: 999 };
-
-  for (let d = 0; d < 6; d++) {
-    const date = addDays(weekStart, d);
-    for (const t of timeSlots) {
-      const count = state.employees.filter(e => slotStatus(e.id, date, t) === 'work').length;
-      if (count > busiest.count) busiest = { label: `${DAYS[d]} ${t}`, count };
-      if (count < weakest.count) weakest = { label: `${DAYS[d]} ${t}`, count };
-      totalWork += count;
-      totalLunch += state.employees.filter(e => slotStatus(e.id, date, t) === 'lunch').length;
-      totalTimeOff += state.employees.filter(e => slotStatus(e.id, date, t) === 'timeoff').length;
-    }
-  }
-
-  qs('coverageSummary').innerHTML = `
-    <p><strong>Total working slots:</strong> ${totalWork}</p>
-    <p><strong>Total lunch slots:</strong> ${totalLunch}</p>
-    <p><strong>Total time off slots:</strong> ${totalTimeOff}</p>
-    <p><strong>Highest coverage block:</strong> ${busiest.label} (${busiest.count} working)</p>
-    <p><strong>Lowest coverage block:</strong> ${weakest.label} (${weakest.count} working)</p>
-    <p><strong>Sunday:</strong> always off for all employees</p>
-  `;
-}
-
-function groupMetrics(entries, range) {
-  const groups = {};
-  const sorted = [...entries].sort((a, b) => a.weekStart.localeCompare(b.weekStart));
-  sorted.forEach(entry => {
-    const date = new Date(entry.weekStart + 'T12:00:00');
-    let key = entry.weekStart;
-    let label = entry.weekStart;
-    if (range === 'monthly') {
-      key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      label = date.toLocaleString('en-US', { month: 'short', year: 'numeric' });
-    } else {
-      const start = new Date(date);
-      const end = new Date(date);
-      end.setDate(end.getDate() + 13);
-      key = `${start.toISOString().slice(0,10)}_${end.toISOString().slice(0,10)}`;
-      label = `${start.toISOString().slice(5,10)} to ${end.toISOString().slice(5,10)}`;
-    }
-    if (!groups[key]) groups[key] = { label, items: [] };
-    groups[key].items.push(entry);
-  });
-  return Object.values(groups).map(group => {
-    const avg = (field) => group.items.reduce((sum, item) => sum + Number(item[field] || 0), 0) / group.items.length;
-    const scoreAvg = group.items.reduce((sum, item) => sum + Number(calculateScoreFromValues(item, item.employeeId).numeric), 0) / group.items.length;
-    return {
-      label: group.label,
-      leadsAssigned: avg('leadsAssigned'),
-      bookedBd: avg('bookedBd'),
-      closing: avg('closing'),
-      sameDayClosing: avg('sameDayClosing'),
-      eng: avg('eng'),
-      score: scoreAvg
-    };
-  });
-}
-
-function drawOverviewChart() {
-  const canvas = qs('performanceChart');
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  const employeeId = qs('overviewEmployee').value;
-  const metric = qs('overviewMetric').value;
-  const range = qs('overviewRange').value;
-  const entries = state.weeklyMetrics.filter(x => !employeeId || x.employeeId === employeeId).sort((a, b) => a.weekStart.localeCompare(b.weekStart));
-
-  if (!entries.length) {
-    ctx.fillStyle = '#9ca3af';
-    ctx.font = '16px Arial';
-    ctx.fillText('No weekly history stored yet.', 30, 50);
-    qs('overviewSummary').textContent = 'Add weekly numbers to build biweekly or monthly trends.';
-    return;
-  }
-
-  const grouped = groupMetrics(entries, range);
-  const values = grouped.map(g => Number(g[metric] || 0));
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const padding = 50;
-  const chartW = canvas.width - padding * 2;
-  const chartH = canvas.height - padding * 2;
-  const rangeValue = max - min || 1;
-
-  ctx.strokeStyle = '#2f2f2f';
-  ctx.lineWidth = 1;
-  for (let i = 0; i <= 4; i++) {
-    const y = padding + (chartH / 4) * i;
-    ctx.beginPath();
-    ctx.moveTo(padding, y);
-    ctx.lineTo(padding + chartW, y);
-    ctx.stroke();
-  }
-
-  ctx.strokeStyle = '#16a34a';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  grouped.forEach((item, index) => {
-    const x = padding + (grouped.length === 1 ? chartW / 2 : (chartW / (grouped.length - 1)) * index);
-    const y = padding + chartH - ((Number(item[metric] || 0) - min) / rangeValue) * chartH;
-    if (index === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  });
-  ctx.stroke();
-
-  ctx.fillStyle = '#22c55e';
-  grouped.forEach((item, index) => {
-    const x = padding + (grouped.length === 1 ? chartW / 2 : (chartW / (grouped.length - 1)) * index);
-    const y = padding + chartH - ((Number(item[metric] || 0) - min) / rangeValue) * chartH;
-    ctx.beginPath();
-    ctx.arc(x, y, 5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#d1d5db';
-    ctx.font = '11px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText(item.label, x, canvas.height - 15);
-    ctx.fillStyle = '#22c55e';
-  });
-
-  ctx.fillStyle = '#d1d5db';
-  ctx.font = '12px Arial';
-  ctx.textAlign = 'left';
-  ctx.fillText(max.toFixed(2), 8, padding + 5);
-  ctx.fillText(min.toFixed(2), 8, padding + chartH);
-
-  const employeeName = state.employees.find(e => e.id === employeeId)?.name || 'All Employees';
-  const latest = grouped[grouped.length - 1];
-  qs('overviewSummary').textContent = `${employeeName} • ${range === 'monthly' ? 'Monthly' : 'Biweekly'} ${metric} trend • Latest ${latest.label}: ${Number(latest[metric]).toFixed(2)}`;
-}
-
-function renderAll() {
-  const dayOptions = DAY_OFF_OPTIONS.map(day => `<option value="${day}">${day}</option>`).join('');
-  qs('employeeDayOff').innerHTML = dayOptions;
-  qs('overrideDay').innerHTML = DAYS.map(day => `<option value="${day}">${day}</option>`).join('');
-  qs('timeOffEmployee').innerHTML = '<option value="">Select employee</option>' + state.employees.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
-  qs('weeklyEmployee').innerHTML = '<option value="">Select employee</option>' + state.employees.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
-  qs('overviewEmployee').innerHTML = '<option value="">All Employees</option>' + state.employees.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
-  qs('scriptUrl').value = state.scriptUrl || '';
-  qs('autoSyncToggle').checked = !!state.autoSync;
-  qs('pullOnLoadToggle').checked = !!state.pullOnLoad;
-  renderEmployeesTable();
-  renderTimeOffTable();
-  renderWeeklyHistoryTable();
-  renderStats();
-  renderHeatmap();
-  drawOverviewChart();
-  saveStateLocal();
-}
-
-document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    qs(btn.dataset.page).classList.add('active');
-    if (btn.dataset.page === 'overviewPage') drawOverviewChart();
-    if (btn.dataset.page === 'heatmapPage') renderHeatmap();
-  });
-});
-
-qs('hasOverride').addEventListener('change', toggleOverrideFields);
-qs('addEmployeeBtn').addEventListener('click', addEmployee);
-qs('cancelEditBtn').addEventListener('click', resetEmployeeForm);
-qs('addTimeOffBtn').addEventListener('click', addTimeOff);
-qs('saveWeeklyBtn').addEventListener('click', saveWeeklyMetrics);
-qs('cancelWeeklyEditBtn').addEventListener('click', resetWeeklyForm);
-qs('saveScriptUrlBtn').addEventListener('click', saveScriptUrl);
-qs('reconnectBtn').addEventListener('click', reconnectSheet);
-qs('pullSheetBtn').addEventListener('click', () => pullFromSheet(false));
-qs('pushSheetBtn').addEventListener('click', () => pushToSheet(false));
-qs('exportBtn').addEventListener('click', exportData);
-qs('importBtn').addEventListener('click', () => qs('importFile').click());
-qs('importFile').addEventListener('change', (e) => { if (e.target.files[0]) importData(e.target.files[0]); });
-qs('clearBtn').addEventListener('click', clearAll);
-qs('weekStart').addEventListener('change', renderAll);
-qs('hourStart').addEventListener('change', renderHeatmap);
-qs('hourEnd').addEventListener('change', renderHeatmap);
-qs('availableAtTime').addEventListener('change', renderAvailableEmployees);
-qs('availableAtDate').addEventListener('change', renderAvailableEmployees);
-qs('autoSyncToggle').addEventListener('change', () => { state.autoSync = qs('autoSyncToggle').checked; saveStateLocal(); setSyncStatus(state.autoSync ? 'Auto-save enabled.' : 'Auto-save disabled.'); });
-qs('pullOnLoadToggle').addEventListener('change', () => { state.pullOnLoad = qs('pullOnLoadToggle').checked; saveStateLocal(); setSyncStatus(state.pullOnLoad ? 'Pull on load enabled.' : 'Pull on load disabled.'); });
-['employeeLeadsAssigned','employeeBookedBd','employeeClosing','employeeSameDayClosing','employeeEng'].forEach(id => {
-  qs(id).addEventListener('input', updateCalculatedScorePreview);
-});
-['weeklyLeadsAssigned','weeklyBookedBd','weeklyClosing','weeklySameDayClosing','weeklyEng','weeklyEmployee'].forEach(id => {
-  qs(id).addEventListener('input', updateWeeklyCalculatedScorePreview);
-  qs(id).addEventListener('change', updateWeeklyCalculatedScorePreview);
-});
-qs('overviewEmployee').addEventListener('change', drawOverviewChart);
-qs('overviewMetric').addEventListener('change', drawOverviewChart);
-qs('overviewRange').addEventListener('change', drawOverviewChart);
-
-const today = new Date().toISOString().slice(0, 10);
-qs('timeOffDate').value = today;
-qs('weekStart').value = getMonday(today);
-qs('weeklyWeekStart').value = getMonday(today);
-qs('availableAtTime').value = '10:00';
-updateCalculatedScorePreview();
-resetWeeklyForm();
-window.deleteEmployee = deleteEmployee;
-window.editEmployee = editEmployee;
-window.deleteTimeOff = deleteTimeOff;
-window.setHeatmapDay = setHeatmapDay;
-window.editWeeklyMetrics = editWeeklyMetrics;
-window.deleteWeeklyMetrics = deleteWeeklyMetrics;
-renderAll();
-if (state.pullOnLoad && state.scriptUrl) {
-  pullFromSheet(true);
-} else {
-  setSyncStatus(state.scriptUrl ? 'Connected settings loaded. Pull manually or enable pull on load.' : 'Using local save only.');
-}
+function uid() { return Math.random().toString(36).slice(2,10); }
+function qs(id){ return document.getElementById(id); }
+function getTimeOffCount(employeeId){ return state.timeOff.filter(x=>x.employeeId===employeeId).length; }
+function scoreLeadsAssigned(value, employeeId){ const workedDays=Math.max(1,5-getTimeOffCount(employeeId)); const adjusted=(Number(value||0)/workedDays)*5; if(adjusted>=50) return 4; if(adjusted>=35) return 3; if(adjusted>=20) return 2; return 1; }
+function scoreBookedBd(value){ value=Number(value||0); if(value>=25) return 4; if(value>=20) return 3; if(value>=17) return 2; return 1; }
+function scoreClosing(value){ value=Number(value||0); if(value>=40) return 4; if(value>=35) return 3; if(value>=30) return 2; return 1; }
+function scoreSameDayClosing(value){ value=Number(value||0); if(value>=32) return 4; if(value>=27) return 3; if(value>=22) return 2; return 1; }
+function scoreEng(value){ value=Number(value||0); if(value<=10) return 4; if(value<=15) return 3; if(value<=20) return 2; return 1; }
+function calculateScoreFromValues(values, employeeId='__preview__'){ const parts=[scoreLeadsAssigned(values.leadsAssigned, employeeId),scoreBookedBd(values.bookedBd),scoreClosing(values.closing),scoreSameDayClosing(values.sameDayClosing),scoreEng(values.eng)]; const avg=parts.reduce((a,b)=>a+b,0)/parts.length; let label='Poor'; if(avg>=3.5) label='Good'; else if(avg>=2.5) label='Average'; else if(avg>=1.75) label='Okay'; return { numeric: avg.toFixed(2), label }; }
+function calculateEmployeeScore(employee){ return calculateScoreFromValues({ leadsAssigned:employee.leadsAssigned, bookedBd:employee.bookedBd, closing:employee.closing, sameDayClosing:employee.sameDayClosing, eng:employee.eng }, employee.id); }
+function updateCalculatedScorePreview(){ const preview={ leadsAssigned:Number(qs('employeeLeadsAssigned').value||0), bookedBd:Number(qs('employeeBookedBd').value||0), closing:Number(qs('employeeClosing').value||0), sameDayClosing:Number(qs('employeeSameDayClosing').value||0), eng:Number(qs('employeeEng').value||0)}; const score=calculateScoreFromValues(preview); qs('employeeCalculatedScore').value=`${score.label} (${score.numeric})`; }
+function updateWeeklyCalculatedScorePreview(){ const preview={ leadsAssigned:Number(qs('weeklyLeadsAssigned').value||0), bookedBd:Number(qs('weeklyBookedBd').value||0), closing:Number(qs('weeklyClosing').value||0), sameDayClosing:Number(qs('weeklySameDayClosing').value||0), eng:Number(qs('weeklyEng').value||0)}; const score=calculateScoreFromValues(preview, qs('weeklyEmployee').value||'__preview__'); qs('weeklyCalculatedScore').value=`${score.label} (${score.numeric})`; }
+function timeToMinutes(t){ if(!t) return 0; const [h,m]=t.split(':').map(Number); return h*60+m; }
+function minutesToTime(mins){ const h=Math.floor(mins/60).toString().padStart(2,'0'); const m=(mins%60).toString().padStart(2,'0'); return `${h}:${m}`; }
+function getMonday(dateString){ const d=new Date(dateString+'T12:00:00'); const jsDay=d.getDay(); const diff=jsDay===0?-6:1-jsDay; d.setDate(d.getDate()+diff); return d.toISOString().slice(0,10); }
+function addDays(dateString, amount){ const d=new Date(dateString+'T12:00:00'); d.setDate(d.getDate()+amount); return d.toISOString().slice(0,10); }
+function getTimeSlots(start,end){ const result=[]; let s=timeToMinutes(start); const e=timeToMinutes(end); while(s<e){ result.push(minutesToTime(s)); s+=60; } return result; }
+function getJsDayName(date){ return ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][new Date(date+'T12:00:00').getDay()]; }
+function getScheduleForDate(employee,date){ const jsDay=new Date(date+'T12:00:00').getDay(); if(jsDay===0) return { available:false, reason:'Sunday' }; const dayName=getJsDayName(date); if(employee.dayOff && employee.dayOff!=='No Day Off' && dayName===employee.dayOff) return { available:false, reason:'Day Off' }; if(employee.override?.enabled && employee.override.day===dayName){ if(!employee.override.available) return { available:false, reason:'Override Off', overridden:true }; return { available:true, start:employee.override.start, end:employee.override.end, lunchStart:employee.override.lunchStart, lunchEnd:employee.override.lunchEnd, overridden:true }; } return { available:true, start:employee.defaultSchedule.start, end:employee.defaultSchedule.end, lunchStart:employee.defaultSchedule.lunchStart, lunchEnd:employee.defaultSchedule.lunchEnd, overridden:false }; }
+function hasTimeOff(empId,date){ return state.timeOff.find(x=>x.employeeId===empId && x.date===date); }
+function slotStatus(empId,date,time){ const employee=state.employees.find(e=>e.id===empId); if(!employee) return 'off'; const jsDay=new Date(date+'T12:00:00').getDay(); if(jsDay===0) return 'off'; if(hasTimeOff(empId,date)) return 'timeoff'; const schedule=getScheduleForDate(employee,date); if(!schedule.available) return 'off'; const mins=timeToMinutes(time); const start=timeToMinutes(schedule.start); const end=timeToMinutes(schedule.end); const lunchStart=timeToMinutes(schedule.lunchStart); const lunchEnd=timeToMinutes(schedule.lunchEnd); if(mins<start || mins>=end) return 'off'; if(mins>=lunchStart && mins<lunchEnd) return 'lunch'; return 'work'; }
+function getFilteredEmployees(type){ if(type==='Combined') return state.employees; return state.employees.filter(e => (e.type||'Hourly')===type); }
+function queueAutoSync(){ saveStateLocal(); if(!state.autoSync || !state.scriptUrl) return; clearTimeout(autoSyncTimer); setSyncStatus('Changes saved locally. Auto-saving to Google Sheets...'); autoSyncTimer=setTimeout(()=>pushToSheet(true),1200); }
+function populateEmployeeForm(employee){ qs('employeeName').value=employee.name||''; qs('employeeType').value=employee.type||'Hourly'; qs('employeeNotes').value=employee.notes||''; qs('employeeLeadsAssigned').value=employee.leadsAssigned ?? 35; qs('employeeBookedBd').value=employee.bookedBd ?? 17; qs('employeeClosing').value=employee.closing ?? 35; qs('employeeSameDayClosing').value=employee.sameDayClosing ?? 27; qs('employeeEng').value=employee.eng ?? 15; qs('employeeDayOff').value=employee.dayOff || 'No Day Off'; qs('defaultStart').value=employee.defaultSchedule?.start||'08:00'; qs('defaultEnd').value=employee.defaultSchedule?.end||'17:00'; qs('defaultLunchStart').value=employee.defaultSchedule?.lunchStart||'12:00'; qs('defaultLunchEnd').value=employee.defaultSchedule?.lunchEnd||'13:00'; qs('hasOverride').checked=!!employee.override?.enabled; toggleOverrideFields(); qs('overrideDay').value=employee.override?.day||'Monday'; qs('overrideEnabled').value=String(employee.override?.available ?? true); qs('overrideStart').value=employee.override?.start||'10:00'; qs('overrideEnd').value=employee.override?.end||'19:00'; qs('overrideLunchStart').value=employee.override?.lunchStart||'14:00'; qs('overrideLunchEnd').value=employee.override?.lunchEnd||'15:00'; updateCalculatedScorePreview(); }
+function resetEmployeeForm(){ qs('employeeName').value=''; qs('employeeType').value='Hourly'; qs('employeeNotes').value=''; qs('employeeLeadsAssigned').value=35; qs('employeeBookedBd').value=17; qs('employeeClosing').value=35; qs('employeeSameDayClosing').value=27; qs('employeeEng').value=15; qs('employeeDayOff').value='No Day Off'; qs('defaultStart').value='08:00'; qs('defaultEnd').value='17:00'; qs('defaultLunchStart').value='12:00'; qs('defaultLunchEnd').value='13:00'; qs('hasOverride').checked=false; toggleOverrideFields(); qs('overrideDay').value='Monday'; qs('overrideEnabled').value='true'; qs('overrideStart').value='10:00'; qs('overrideEnd').value='19:00'; qs('overrideLunchStart').value='14:00'; qs('overrideLunchEnd').value='15:00'; qs('addEmployeeBtn').textContent='Add Estimator'; qs('cancelEditBtn').classList.add('hidden'); delete qs('addEmployeeBtn').dataset.editingId; updateCalculatedScorePreview(); }
+function editEmployee(id){ const employee=state.employees.find(e=>e.id===id); if(!employee) return; populateEmployeeForm(employee); qs('addEmployeeBtn').dataset.editingId=id; qs('addEmployeeBtn').textContent='Save Estimator'; qs('cancelEditBtn').classList.remove('hidden'); window.scrollTo({top:0,behavior:'smooth'}); }
+function addEmployee(){ const name=qs('employeeName').value.trim(); if(!name) return alert('Enter estimator name.'); const editingId=qs('addEmployeeBtn').dataset.editingId||''; const employee={ id:editingId||uid(), name, type:qs('employeeType').value, role:'Estimator', notes:qs('employeeNotes').value.trim(), leadsAssigned:Number(qs('employeeLeadsAssigned').value||0), bookedBd:Number(qs('employeeBookedBd').value||0), closing:Number(qs('employeeClosing').value||0), sameDayClosing:Number(qs('employeeSameDayClosing').value||0), eng:Number(qs('employeeEng').value||0), dayOff:qs('employeeDayOff').value, defaultSchedule:{ start:qs('defaultStart').value, end:qs('defaultEnd').value, lunchStart:qs('defaultLunchStart').value, lunchEnd:qs('defaultLunchEnd').value }, override:{ enabled:qs('hasOverride').checked, day:qs('overrideDay').value, available:qs('overrideEnabled').value==='true', start:qs('overrideStart').value, end:qs('overrideEnd').value, lunchStart:qs('overrideLunchStart').value, lunchEnd:qs('overrideLunchEnd').value }}; if(employee.override.enabled && employee.override.day===employee.dayOff && employee.dayOff!=='No Day Off') return alert('Override day cannot be the same as the weekday off.'); if(editingId){ const index=state.employees.findIndex(e=>e.id===editingId); if(index>=0) state.employees[index]=employee; } else { state.employees.push(employee); } resetEmployeeForm(); renderAll(); queueAutoSync(); }
+function addTimeOff(){ const employeeId=qs('timeOffEmployee').value; const date=qs('timeOffDate').value; if(!employeeId || !date) return alert('Pick estimator and date.'); const jsDay=new Date(date+'T12:00:00').getDay(); if(jsDay===0) return alert('Sunday is already off for everyone.'); state.timeOff.push({ id:uid(), employeeId, date, type:qs('timeOffType').value, note:qs('timeOffNote').value.trim() }); qs('timeOffNote').value=''; renderAll(); queueAutoSync(); }
+function deleteEmployee(id){ if(!confirm('Delete estimator and related time off/history?')) return; state.employees=state.employees.filter(x=>x.id!==id); state.timeOff=state.timeOff.filter(x=>x.employeeId!==id); state.weeklyMetrics=state.weeklyMetrics.filter(x=>x.employeeId!==id); renderAll(); queueAutoSync(); }
+function deleteTimeOff(id){ state.timeOff=state.timeOff.filter(x=>x.id!==id); renderAll(); queueAutoSync(); }
+function populateWeeklyForm(entry){ qs('weeklyEmployee').value=entry.employeeId; qs('weeklyWeekStart').value=entry.weekStart; qs('weeklyLeadsAssigned').value=entry.leadsAssigned; qs('weeklyBookedBd').value=entry.bookedBd; qs('weeklyClosing').value=entry.closing; qs('weeklySameDayClosing').value=entry.sameDayClosing; qs('weeklyEng').value=entry.eng; qs('saveWeeklyBtn').dataset.editingId=entry.id; qs('saveWeeklyBtn').textContent='Save Weekly Update'; qs('cancelWeeklyEditBtn').classList.remove('hidden'); updateWeeklyCalculatedScorePreview(); }
+function resetWeeklyForm(){ qs('weeklyEmployee').value=state.employees[0]?.id||''; qs('weeklyWeekStart').value=getMonday(new Date().toISOString().slice(0,10)); qs('weeklyLeadsAssigned').value=35; qs('weeklyBookedBd').value=17; qs('weeklyClosing').value=35; qs('weeklySameDayClosing').value=27; qs('weeklyEng').value=15; qs('saveWeeklyBtn').textContent='Save Weekly Numbers'; qs('cancelWeeklyEditBtn').classList.add('hidden'); delete qs('saveWeeklyBtn').dataset.editingId; updateWeeklyCalculatedScorePreview(); }
+function saveWeeklyMetrics(){ const employeeId=qs('weeklyEmployee').value; const weekStart=qs('weeklyWeekStart').value; if(!employeeId || !weekStart) return alert('Pick estimator and week starting date.'); const editingId=qs('saveWeeklyBtn').dataset.editingId||''; const entry={ id:editingId||uid(), employeeId, weekStart, leadsAssigned:Number(qs('weeklyLeadsAssigned').value||0), bookedBd:Number(qs('weeklyBookedBd').value||0), closing:Number(qs('weeklyClosing').value||0), sameDayClosing:Number(qs('weeklySameDayClosing').value||0), eng:Number(qs('weeklyEng').value||0) }; const dupeIndex=state.weeklyMetrics.findIndex(x=>x.employeeId===employeeId && x.weekStart===weekStart && x.id!==editingId); if(dupeIndex>=0){ if(!confirm('A weekly entry already exists for this estimator and week. Replace it?')) return; state.weeklyMetrics.splice(dupeIndex,1); } if(editingId){ const index=state.weeklyMetrics.findIndex(x=>x.id===editingId); if(index>=0) state.weeklyMetrics[index]=entry; } else { state.weeklyMetrics.push(entry); } resetWeeklyForm(); renderAll(); queueAutoSync(); }
+function editWeeklyMetrics(id){ const entry=state.weeklyMetrics.find(x=>x.id===id); if(!entry) return; populateWeeklyForm(entry); document.querySelector('[data-page="weeklyPage"]').click(); }
+function deleteWeeklyMetrics(id){ state.weeklyMetrics=state.weeklyMetrics.filter(x=>x.id!==id); renderAll(); queueAutoSync(); }
+function exportData(){ const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='ams-estimator-scheduler.json'; a.click(); URL.revokeObjectURL(url); }
+function importData(file){ const reader=new FileReader(); reader.onload=(e)=>{ try{ const parsed=JSON.parse(e.target.result); state={ ...defaultState(), ...parsed, employees:parsed.employees||[], timeOff:parsed.timeOff||[], weeklyMetrics:parsed.weeklyMetrics||[] }; renderAll(); queueAutoSync(); alert('Import complete.'); } catch { alert('Invalid JSON file.'); } }; reader.readAsText(file); }
+function clearAll(){ if(!confirm('Clear all saved data?')) return; state=defaultState(); renderAll(); saveStateLocal(); setSyncStatus('All local data cleared.'); }
+function toggleOverrideFields(){ qs('overrideFields').classList.toggle('hidden', !qs('hasOverride').checked); }
+function saveScriptUrl(){ state.scriptUrl=qs('scriptUrl').value.trim(); state.autoSync=qs('autoSyncToggle').checked; state.pullOnLoad=qs('pullOnLoadToggle').checked; saveStateLocal(); setSyncStatus(state.scriptUrl ? 'Connection settings saved.' : 'Using local save only.'); }
+async function reconnectSheet(){ state.scriptUrl=qs('scriptUrl').value.trim(); state.autoSync=qs('autoSyncToggle').checked; state.pullOnLoad=qs('pullOnLoadToggle').checked; saveStateLocal(); if(!state.scriptUrl){ setSyncStatus('No Apps Script URL saved. Using local save only.', true); return; } setSyncStatus('Checking Google Sheets connection...'); try{ const response=await fetch(state.scriptUrl+'?action=getAll&ts='+Date.now()); const data=await response.json(); if(!data.ok) throw new Error(data.message||'Connection failed'); setSyncStatus('Google Sheets connected successfully.'); qs('statSyncState').textContent=state.autoSync?'Auto Sync':'Connected'; } catch(error){ setSyncStatus('Could not connect to Google Sheets. Check the Apps Script URL and deployment.', true); console.error(error); } }
+async function pullFromSheet(silent=false){ const url=qs('scriptUrl').value.trim()||state.scriptUrl; if(!url){ if(!silent) alert('Paste your Apps Script web app URL first.'); return; } try{ if(!silent) setSyncStatus('Pulling latest data from Google Sheets...'); const response=await fetch(url+'?action=getAll&ts='+Date.now()); const data=await response.json(); if(!data.ok) throw new Error(data.message||'Pull failed'); state.employees=data.employees||[]; state.timeOff=data.timeOff||[]; state.weeklyMetrics=data.weeklyMetrics||[]; state.scriptUrl=url; state.lastSyncAt=new Date().toLocaleString(); renderAll(); saveStateLocal(); setSyncStatus('Pulled latest Google Sheets data'+(state.lastSyncAt?` • ${state.lastSyncAt}`:'')); } catch(error){ setSyncStatus('Could not pull from Google Sheets.', true); console.error(error); if(!silent) alert('Could not pull from Google Sheets.'); } }
+async function pushToSheet(silent=false){ const url=qs('scriptUrl').value.trim()||state.scriptUrl; if(!url){ if(!silent) alert('Paste your Apps Script web app URL first.'); return; } try{ if(!silent) setSyncStatus('Saving to Google Sheets...'); const response=await fetch(url,{ method:'POST', headers:{ 'Content-Type':'text/plain;charset=utf-8' }, body:JSON.stringify({ action:'saveAll', employees:state.employees, timeOff:state.timeOff, weeklyMetrics:state.weeklyMetrics }) }); const data=await response.json(); if(!data.ok) throw new Error(data.message||'Save failed'); state.scriptUrl=url; state.lastSyncAt=new Date().toLocaleString(); saveStateLocal(); setSyncStatus('Saved to Google Sheets'+(state.lastSyncAt?` • ${state.lastSyncAt}`:'')); qs('statSyncState').textContent=state.autoSync?'Auto Sync':'Connected'; } catch(error){ setSyncStatus('Could not save to Google Sheets.', true); console.error(error); if(!silent) alert('Could not save to Google Sheets.'); } }
+function renderEmployeesTable(){ qs('employeesTable').innerHTML = state.employees.length ? state.employees.map(e=>{ const normal=`${e.defaultSchedule.start}-${e.defaultSchedule.end}<br><span class="small">Lunch ${e.defaultSchedule.lunchStart}-${e.defaultSchedule.lunchEnd}</span>`; const override=e.override?.enabled ? `<span class="pill override">${e.override.day}</span><br><span class="small">${e.override.available?`${e.override.start}-${e.override.end}`:'Off'}</span>` : '<span class="small">None</span>'; const score=calculateEmployeeScore(e); return `<tr><td><strong>${e.name}</strong><br><span class="small">${e.notes||''}</span></td><td><span class="pill type">${e.type||'Hourly'}</span></td><td><span class="pill dayoff">${e.dayOff||'No Day Off'}</span></td><td>${normal}</td><td>${override}</td><td><span class="small">Leads ${e.leadsAssigned}</span><br><span class="small">BD ${e.bookedBd}</span><br><span class="small">Closing ${e.closing}</span><br><span class="small">Same-day ${e.sameDayClosing}</span><br><span class="small">ENG ${e.eng}</span></td><td><span class="pill score">${score.label}</span><br><span class="small">${score.numeric}</span></td><td><div class="btn-row"><button class="btn-secondary" onclick="editEmployee('${e.id}')">Edit</button><button class="btn-danger" onclick="deleteEmployee('${e.id}')">Delete</button></div></td></tr>`; }).join('') : '<tr><td colspan="8" class="small">No estimators yet.</td></tr>'; }
+function renderTimeOffTable(){ qs('timeOffTable').innerHTML = state.timeOff.length ? [...state.timeOff].sort((a,b)=>a.date.localeCompare(b.date)).map(t=>{ const emp=state.employees.find(e=>e.id===t.employeeId); return `<tr><td>${emp?emp.name:'Unknown'}</td><td>${t.date}</td><td><span class="pill timeoff">${t.type}</span></td><td><button class="btn-danger" onclick="deleteTimeOff('${t.id}')">X</button></td></tr>`; }).join('') : '<tr><td colspan="4" class="small">No time off entered.</td></tr>'; }
+function renderWeeklyHistoryTable(){ qs('weeklyHistoryTable').innerHTML = state.weeklyMetrics.length ? [...state.weeklyMetrics].sort((a,b)=>(b.weekStart+b.employeeId).localeCompare(a.weekStart+a.employeeId)).map(entry=>{ const emp=state.employees.find(e=>e.id===entry.employeeId); const score=calculateScoreFromValues(entry, entry.employeeId); return `<tr><td>${emp?emp.name:'Unknown'}</td><td>${entry.weekStart}</td><td>${emp?.type||'-'}</td><td>${entry.leadsAssigned}</td><td>${entry.bookedBd}</td><td>${entry.closing}</td><td>${entry.sameDayClosing}</td><td>${entry.eng}</td><td><span class="pill score">${score.label}</span><br><span class="small">${score.numeric}</span></td><td><div class="btn-row"><button class="btn-secondary" onclick="editWeeklyMetrics('${entry.id}')">Edit</button><button class="btn-danger" onclick="deleteWeeklyMetrics('${entry.id}')">Delete</button></div></td></tr>`; }).join('') : '<tr><td colspan="10" class="small">No weekly history yet.</td></tr>'; }
+function renderStats(){ qs('statEmployees').textContent=state.employees.length; qs('statHourlyEmployees').textContent=state.employees.filter(e=>(e.type||'Hourly')==='Hourly').length; qs('statNationalEmployees').textContent=state.employees.filter(e=>(e.type||'Hourly')==='National').length; qs('statTimeOff').textContent=state.timeOff.length; qs('statAvgLeadsAssigned').textContent=state.employees.length ? (state.employees.reduce((sum,e)=>sum+Number(e.leadsAssigned||0),0)/state.employees.length).toFixed(1) : '0.0'; qs('statAvgCalculatedScore').textContent=state.employees.length ? (state.employees.reduce((sum,e)=>sum+Number(calculateEmployeeScore(e).numeric),0)/state.employees.length).toFixed(2) : '0.0'; const weekStart=qs('weekStart').value||getMonday(new Date().toISOString().slice(0,10)); const times=getTimeSlots(qs('hourStart').value||'07:00', qs('hourEnd').value||'19:00'); let working=0; for(let d=0; d<6; d++){ const date=addDays(weekStart,d); for(const e of state.employees){ for(const t of times){ if(slotStatus(e.id,date,t)==='work') working++; } } } qs('statSlots').textContent=working; }
+function coverageClass(count){ if(count<=0) return 'coverage-0'; if(count===1) return 'coverage-1'; if(count===2) return 'coverage-2'; if(count===3) return 'coverage-3'; return 'coverage-4'; }
+function renderHeatmapTypeTabs(){ qs('heatmapTypeTabs').innerHTML = HEATMAP_TYPES.map(type => `<button class="type-tab-btn ${selectedHeatmapType===type?'active':''}" onclick="setHeatmapType('${type}')">${type}</button>`).join(''); qs('heatmapTitle').textContent = `${selectedHeatmapType} Heatmap`; }
+function renderHeatmapDayTabs(){ qs('heatmapDayTabs').innerHTML = DAYS.map(day => `<button class="day-tab-btn ${selectedHeatmapDay===day?'active':''}" onclick="setHeatmapDay('${day}')">${day}</button>`).join(''); }
+function setHeatmapType(type){ selectedHeatmapType=type; renderHeatmap(); }
+function setHeatmapDay(day){ selectedHeatmapDay=day; renderHeatmap(); }
+function renderAvailableEmployees(){ const date=qs('availableAtDate').value; const time=qs('availableAtTime').value; if(!date||!time){ qs('availableEmployeesList').innerHTML='<div class="available-item">Pick a date and time.</div>'; return; } const matches=getFilteredEmployees(selectedHeatmapType).filter(emp => slotStatus(emp.id,date,time)==='work'); qs('availableEmployeesList').innerHTML = matches.length ? matches.map(emp=>{ const score=calculateEmployeeScore(emp); return `<div class="available-item"><strong>${emp.name}</strong><br><span class="small">${emp.type||'Hourly'} • ${time} • ${score.label} ${score.numeric}</span></div>`; }).join('') : '<div class="available-item">No estimators available at that time.</div>'; }
+function renderHeatmap(){ renderHeatmapTypeTabs(); renderHeatmapDayTabs(); const weekStart=qs('weekStart').value||getMonday(new Date().toISOString().slice(0,10)); qs('weekStart').value=weekStart; const dayIndex=DAYS.indexOf(selectedHeatmapDay); const date=addDays(weekStart, dayIndex>=0?dayIndex:0); const timeSlots=getTimeSlots(qs('hourStart').value||'07:00', qs('hourEnd').value||'19:00'); const employees=getFilteredEmployees(selectedHeatmapType); let html=''; html += `<tr><th class="employee-col sticky-top">${selectedHeatmapType} • ${selectedHeatmapDay}<br><span class="small">${date}</span></th>`; for(const t of timeSlots){ const availableCount=employees.filter(e=>slotStatus(e.id,date,t)==='work').length; html += `<th class="sticky-top ${coverageClass(availableCount)}">${t}<br>${availableCount}</th>`; } html += '</tr>'; for(const emp of employees){ const schedule=getScheduleForDate(emp,date); const score=calculateEmployeeScore(emp); const meta=hasTimeOff(emp.id,date)?'Time Off':schedule.overridden?'Override':selectedHeatmapDay===emp.dayOff?'Day Off':'Normal'; html += `<tr><td class="employee-col"><strong>${emp.name}</strong><br><span class="small">${emp.type||'Hourly'} • ${score.label} ${score.numeric} • ${meta}</span></td>`; for(const t of timeSlots){ const status=slotStatus(emp.id,date,t); const label=status==='work'?'Work':status==='lunch'?'Lunch':status==='timeoff'?'Off':''; html += `<td class="slot-${status==='off'?'empty':status}" title="${emp.name} - ${label||'Off'}">${label}</td>`; } html += '</tr>'; } qs('heatmapTable').innerHTML = html || '<tr><td>No data.</td></tr>'; renderCoverageSummary(weekStart,timeSlots); renderAvailableAtDateOptions(); renderAvailableEmployees(); }
+function renderAvailableAtDateOptions(){ const weekStart=qs('weekStart').value||getMonday(new Date().toISOString().slice(0,10)); const options=DAYS.map((day,i)=>{ const date=addDays(weekStart,i); return `<option value="${date}">${day} • ${date}</option>`; }).join(''); const current=qs('availableAtDate').value; qs('availableAtDate').innerHTML=options; if([...qs('availableAtDate').options].some(opt=>opt.value===current)) qs('availableAtDate').value=current; else qs('availableAtDate').value=addDays(weekStart,DAYS.indexOf(selectedHeatmapDay)); }
+function renderCoverageSummary(weekStart,timeSlots){ const employees=getFilteredEmployees(selectedHeatmapType); let totalWork=0,totalLunch=0,totalTimeOff=0; let busiest={label:'-',count:-1}; let weakest={label:'-',count:999}; for(let d=0; d<6; d++){ const date=addDays(weekStart,d); for(const t of timeSlots){ const count=employees.filter(e=>slotStatus(e.id,date,t)==='work').length; if(count>busiest.count) busiest={ label:`${DAYS[d]} ${t}`, count }; if(count<weakest.count) weakest={ label:`${DAYS[d]} ${t}`, count }; totalWork += count; totalLunch += employees.filter(e=>slotStatus(e.id,date,t)==='lunch').length; totalTimeOff += employees.filter(e=>slotStatus(e.id,date,t)==='timeoff').length; } } qs('coverageSummary').innerHTML=`<p><strong>${selectedHeatmapType} total working slots:</strong> ${totalWork}</p><p><strong>Total lunch slots:</strong> ${totalLunch}</p><p><strong>Total time off slots:</strong> ${totalTimeOff}</p><p><strong>Highest coverage block:</strong> ${busiest.label} (${busiest.count} working)</p><p><strong>Lowest coverage block:</strong> ${weakest.label} (${weakest.count} working)</p><p><strong>Sunday:</strong> always off for all estimators</p>`; }
+function groupMetrics(entries, range){ const groups={}; const sorted=[...entries].sort((a,b)=>a.weekStart.localeCompare(b.weekStart)); sorted.forEach(entry=>{ const date=new Date(entry.weekStart+'T12:00:00'); let key=entry.weekStart; let label=entry.weekStart; if(range==='monthly'){ key=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`; label=date.toLocaleString('en-US',{month:'short',year:'numeric'}); } else { const start=new Date(date); const end=new Date(date); end.setDate(end.getDate()+13); key=`${start.toISOString().slice(0,10)}_${end.toISOString().slice(0,10)}`; label=`${start.toISOString().slice(5,10)} to ${end.toISOString().slice(5,10)}`; } if(!groups[key]) groups[key]={ label, items:[] }; groups[key].items.push(entry); }); return Object.values(groups).map(group=>{ const avg=(field)=>group.items.reduce((sum,item)=>sum+Number(item[field]||0),0)/group.items.length; const scoreAvg=group.items.reduce((sum,item)=>sum+Number(calculateScoreFromValues(item,item.employeeId).numeric),0)/group.items.length; return { label:group.label, leadsAssigned:avg('leadsAssigned'), bookedBd:avg('bookedBd'), closing:avg('closing'), sameDayClosing:avg('sameDayClosing'), eng:avg('eng'), score:scoreAvg }; }); }
+function drawOverviewChart(){ const canvas=qs('performanceChart'); const ctx=canvas.getContext('2d'); ctx.clearRect(0,0,canvas.width,canvas.height); const employeeId=qs('overviewEmployee').value; const metric=qs('overviewMetric').value; const range=qs('overviewRange').value; const type=qs('overviewType').value; const entries=state.weeklyMetrics.filter(x=>{ const emp=state.employees.find(e=>e.id===x.employeeId); const typeMatch=type==='All' || (emp?.type||'Hourly')===type; const empMatch=!employeeId || x.employeeId===employeeId; return typeMatch && empMatch; }).sort((a,b)=>a.weekStart.localeCompare(b.weekStart)); if(!entries.length){ ctx.fillStyle='#9ca3af'; ctx.font='16px Arial'; ctx.fillText('No weekly history stored yet.',30,50); qs('overviewSummary').textContent='Add weekly numbers to build biweekly or monthly trends.'; return; } const grouped=groupMetrics(entries,range); const values=grouped.map(g=>Number(g[metric]||0)); const min=Math.min(...values); const max=Math.max(...values); const padding=50; const chartW=canvas.width-padding*2; const chartH=canvas.height-padding*2; const rangeValue=max-min||1; ctx.strokeStyle='#2f2f2f'; ctx.lineWidth=1; for(let i=0;i<=4;i++){ const y=padding+(chartH/4)*i; ctx.beginPath(); ctx.moveTo(padding,y); ctx.lineTo(padding+chartW,y); ctx.stroke(); } ctx.strokeStyle='#16a34a'; ctx.lineWidth=3; ctx.beginPath(); grouped.forEach((item,index)=>{ const x=padding+(grouped.length===1?chartW/2:(chartW/(grouped.length-1))*index); const y=padding+chartH-((Number(item[metric]||0)-min)/rangeValue)*chartH; if(index===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); }); ctx.stroke(); ctx.fillStyle='#22c55e'; grouped.forEach((item,index)=>{ const x=padding+(grouped.length===1?chartW/2:(chartW/(grouped.length-1))*index); const y=padding+chartH-((Number(item[metric]||0)-min)/rangeValue)*chartH; ctx.beginPath(); ctx.arc(x,y,5,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#d1d5db'; ctx.font='11px Arial'; ctx.textAlign='center'; ctx.fillText(item.label,x,canvas.height-15); ctx.fillStyle='#22c55e'; }); ctx.fillStyle='#d1d5db'; ctx.font='12px Arial'; ctx.textAlign='left'; ctx.fillText(max.toFixed(2),8,padding+5); ctx.fillText(min.toFixed(2),8,padding+chartH); const employeeName=state.employees.find(e=>e.id===employeeId)?.name || type || 'All Estimators'; const latest=grouped[grouped.length-1]; qs('overviewSummary').textContent=`${employeeName} • ${range==='monthly'?'Monthly':'Biweekly'} ${metric} trend • Latest ${latest.label}: ${Number(latest[metric]).toFixed(2)}`; }
+function renderAll(){ qs('employeeDayOff').innerHTML = DAY_OFF_OPTIONS.map(day=>`<option value="${day}">${day}</option>`).join(''); qs('overrideDay').innerHTML = DAYS.map(day=>`<option value="${day}">${day}</option>`).join(''); const employeeOptions = state.employees.map(e=>`<option value="${e.id}">${e.name} (${e.type||'Hourly'})</option>`).join(''); qs('timeOffEmployee').innerHTML = '<option value="">Select estimator</option>'+employeeOptions; qs('weeklyEmployee').innerHTML = '<option value="">Select estimator</option>'+employeeOptions; const overviewType=qs('overviewType')?.value || 'All'; const filteredOverviewEmployees=overviewType==='All' ? state.employees : state.employees.filter(e=>(e.type||'Hourly')===overviewType); qs('overviewEmployee').innerHTML = '<option value="">All</option>'+filteredOverviewEmployees.map(e=>`<option value="${e.id}">${e.name}</option>`).join(''); qs('scriptUrl').value=state.scriptUrl||''; qs('autoSyncToggle').checked=!!state.autoSync; qs('pullOnLoadToggle').checked=!!state.pullOnLoad; renderEmployeesTable(); renderTimeOffTable(); renderWeeklyHistoryTable(); renderStats(); renderHeatmap(); drawOverviewChart(); saveStateLocal(); }
+document.querySelectorAll('.tab-btn').forEach(btn=>{ btn.addEventListener('click',()=>{ document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); btn.classList.add('active'); qs(btn.dataset.page).classList.add('active'); if(btn.dataset.page==='overviewPage') drawOverviewChart(); if(btn.dataset.page==='heatmapPage') renderHeatmap(); }); });
+qs('hasOverride').addEventListener('change', toggleOverrideFields); qs('addEmployeeBtn').addEventListener('click', addEmployee); qs('cancelEditBtn').addEventListener('click', resetEmployeeForm); qs('addTimeOffBtn').addEventListener('click', addTimeOff); qs('saveWeeklyBtn').addEventListener('click', saveWeeklyMetrics); qs('cancelWeeklyEditBtn').addEventListener('click', resetWeeklyForm); qs('saveScriptUrlBtn').addEventListener('click', saveScriptUrl); qs('reconnectBtn').addEventListener('click', reconnectSheet); qs('pullSheetBtn').addEventListener('click', ()=>pullFromSheet(false)); qs('pushSheetBtn').addEventListener('click', ()=>pushToSheet(false)); qs('exportBtn').addEventListener('click', exportData); qs('importBtn').addEventListener('click', ()=>qs('importFile').click()); qs('importFile').addEventListener('change',(e)=>{ if(e.target.files[0]) importData(e.target.files[0]); }); qs('clearBtn').addEventListener('click', clearAll); qs('weekStart').addEventListener('change', renderAll); qs('hourStart').addEventListener('change', renderHeatmap); qs('hourEnd').addEventListener('change', renderHeatmap); qs('availableAtTime').addEventListener('change', renderAvailableEmployees); qs('availableAtDate').addEventListener('change', renderAvailableEmployees); qs('autoSyncToggle').addEventListener('change',()=>{ state.autoSync=qs('autoSyncToggle').checked; saveStateLocal(); setSyncStatus(state.autoSync?'Auto-save enabled.':'Auto-save disabled.'); }); qs('pullOnLoadToggle').addEventListener('change',()=>{ state.pullOnLoad=qs('pullOnLoadToggle').checked; saveStateLocal(); setSyncStatus(state.pullOnLoad?'Pull on load enabled.':'Pull on load disabled.'); }); ['employeeLeadsAssigned','employeeBookedBd','employeeClosing','employeeSameDayClosing','employeeEng'].forEach(id=>{ qs(id).addEventListener('input', updateCalculatedScorePreview); }); ['weeklyLeadsAssigned','weeklyBookedBd','weeklyClosing','weeklySameDayClosing','weeklyEng','weeklyEmployee'].forEach(id=>{ qs(id).addEventListener('input', updateWeeklyCalculatedScorePreview); qs(id).addEventListener('change', updateWeeklyCalculatedScorePreview); }); qs('overviewType').addEventListener('change', renderAll); qs('overviewEmployee').addEventListener('change', drawOverviewChart); qs('overviewMetric').addEventListener('change', drawOverviewChart); qs('overviewRange').addEventListener('change', drawOverviewChart);
+const today=new Date().toISOString().slice(0,10); qs('timeOffDate').value=today; qs('weekStart').value=getMonday(today); qs('weeklyWeekStart').value=getMonday(today); qs('availableAtTime').value='10:00'; updateCalculatedScorePreview(); resetWeeklyForm(); window.deleteEmployee=deleteEmployee; window.editEmployee=editEmployee; window.deleteTimeOff=deleteTimeOff; window.setHeatmapDay=setHeatmapDay; window.setHeatmapType=setHeatmapType; window.editWeeklyMetrics=editWeeklyMetrics; window.deleteWeeklyMetrics=deleteWeeklyMetrics; renderAll(); if(state.pullOnLoad && state.scriptUrl){ pullFromSheet(true); } else { setSyncStatus(state.scriptUrl ? 'Connected settings loaded. Pull manually or enable pull on load.' : 'Using local save only.'); }
 </script>
 </body>
 </html>
